@@ -30,27 +30,8 @@
 #'
 #' @export
 find_zoi <- function(intensity, cutoff) {
-  if (!is.numeric(intensity)) {
-    stop(
-      "`intensity` must be a numeric vector.",
-      call. = FALSE
-    )
-  }
-  if (any(!is.finite(intensity))) {
-    stop(
-      "`intensity` must not contain NA, NaN, or infinite values.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(cutoff) ||
-      length(cutoff) != 1L ||
-      !is.finite(cutoff) ||
-      cutoff < 0) {
-    stop(
-      "`cutoff` must be a single non-negative number.",
-      call. = FALSE
-    )
-  }
+  check_numeric_vector(intensity, "intensity")
+  check_nonneg_number(cutoff, "cutoff")
 
   above <- which(intensity > cutoff)
   if (length(above) == 0L) {

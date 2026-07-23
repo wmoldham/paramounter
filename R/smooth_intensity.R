@@ -25,28 +25,8 @@
 #'
 #' @export
 smooth_intensity <- function(intensity, half_window = 0L) {
-  if (!is.numeric(intensity)) {
-    stop(
-      "`intensity` must be a numeric vector.",
-      call. = FALSE
-    )
-  }
-  if (any(!is.finite(intensity))) {
-    stop(
-      "`intensity` must not contain NA, NaN, or infinite values.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(half_window) ||
-      length(half_window) != 1L ||
-      !is.finite(half_window) ||
-      half_window < 0 ||
-      half_window != as.integer(half_window)) {
-    stop(
-      "`half_window` must be a single non-negative integer.",
-      call. = FALSE
-    )
-  }
+  check_numeric_vector(intensity, "intensity")
+  check_nonneg_integer(half_window, "half_window")
   half_window <- as.integer(half_window)
 
   if (length(intensity) <= 1L || half_window == 0L) {

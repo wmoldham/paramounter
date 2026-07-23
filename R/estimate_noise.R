@@ -41,37 +41,9 @@
 #'
 #' @export
 estimate_noise <- function(intensity, block_size = 10L, sd_factor = 3) {
-  if (!is.numeric(intensity)) {
-    stop(
-      "`intensity` must be a numeric vector.",
-      call. = FALSE
-    )
-  }
-  if (any(!is.finite(intensity))) {
-    stop(
-      "`intensity` must not contain NA, NaN, or infinite values.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(block_size) ||
-      length(block_size) != 1L ||
-      !is.finite(block_size) ||
-      block_size < 1 ||
-      block_size != as.integer(block_size)) {
-    stop(
-      "`block_size` must be a single positive integer.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(sd_factor) ||
-      length(sd_factor) != 1L ||
-      !is.finite(sd_factor) ||
-      sd_factor < 0) {
-    stop(
-      "`sd_factor` must be a single non-negative number.",
-      call. = FALSE
-    )
-  }
+  check_numeric_vector(intensity, "intensity")
+  check_count(block_size, "block_size")
+  check_nonneg_number(sd_factor, "sd_factor")
   block_size <- as.integer(block_size)
 
   s <- sort(intensity[intensity > 0])

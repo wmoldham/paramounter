@@ -54,19 +54,6 @@ collect_zoi_masses <- function(
     min_points = 5L,
     fence = 1.5
 ) {
-  n <- length(eic)
-  if (!is.numeric(eic)) {
-    stop(
-      "`eic` must be a numeric vector.",
-      call. = FALSE
-    )
-  }
-  if (any(!is.finite(eic))) {
-    stop(
-      "`eic` must not contain NA, NaN, or infinite values.",
-      call. = FALSE
-    )
-  }
   if (!is.list(mz_list)) {
     stop(
       "`mz_list` must be a list.",
@@ -79,6 +66,8 @@ collect_zoi_masses <- function(
       call. = FALSE
     )
   }
+  check_numeric_vector(eic, "eic")
+  n <- length(eic)
   if (length(mz_list) != n || length(int_list) != n) {
     stop(
       "`mz_list` and `int_list` must have the same length as `eic`.",
@@ -91,53 +80,11 @@ collect_zoi_masses <- function(
       call. = FALSE
     )
   }
-  if (!is.numeric(cutoff) ||
-      length(cutoff) != 1L ||
-      !is.finite(cutoff) ||
-      cutoff < 0) {
-    stop(
-      "`cutoff` must be a single non-negative number.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(apex) ||
-      length(apex) != 1L ||
-      !is.finite(apex) ||
-      apex != as.integer(apex) ||
-      apex < 1 ||
-      apex > n) {
-    stop(
-      "`apex` must be a single integer index within `eic`.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(reference_mz) ||
-      length(reference_mz) != 1L ||
-      !is.finite(reference_mz)) {
-    stop(
-      "`reference_mz` must be a single finite number.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(min_points) ||
-      length(min_points) != 1L ||
-      !is.finite(min_points) ||
-      min_points < 0 ||
-      min_points != as.integer(min_points)) {
-    stop(
-      "`min_points` must be a single non-negative integer.",
-      call. = FALSE
-    )
-  }
-  if (!is.numeric(fence) ||
-      length(fence) != 1L ||
-      !is.finite(fence) ||
-      fence < 0) {
-    stop(
-      "`fence` must be a single non-negative number.",
-      call. = FALSE
-    )
-  }
+  check_nonneg_number(cutoff, "cutoff")
+  check_index(apex, "apex", n, "eic")
+  check_finite_number(reference_mz, "reference_mz")
+  check_nonneg_integer(min_points, "min_points")
+  check_nonneg_number(fence, "fence")
   apex <- as.integer(apex)
 
   walk <- function(masses, dir) {
