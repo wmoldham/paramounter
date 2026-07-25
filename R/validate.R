@@ -155,3 +155,22 @@ check_flag <- function(x, name) {
   }
   invisible(x)
 }
+
+#' Convert a stop-based check into an S7 validator message
+#'
+#' Runs a `check_*` call and returns `NULL` if it passes or the error message as
+#' a string if it fails, the form S7 property and class validators expect.
+#'
+#' @param expr A validation expression that errors on failure.
+#'
+#' @return `NULL` on success, or the error message string on failure.
+#' @noRd
+as_message <- function(expr) {
+  tryCatch(
+    {
+      force(expr)
+      NULL
+    },
+    error = function(e) conditionMessage(e)
+  )
+}
