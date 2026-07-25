@@ -19,6 +19,7 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     S7,
+    Spectra,
     stats,
     xcms
 Collate: 
@@ -33,6 +34,7 @@ Collate:
     'paramounter-package.R'
     'validate.R'
     'pm_config.R'
+    'read_ms_data.R'
     'smooth_intensity.R'
     'universal_parameters.R'
     'zoi_features.R'
