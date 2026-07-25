@@ -38,6 +38,8 @@
 #'
 #' @return A `pm_config` object.
 #'
+#' @include validate.R
+#'
 #' @examples
 #' pm_config()
 #' pm_config(bin_width = 0.02, smooth_half_window = 4L, legacy = FALSE)

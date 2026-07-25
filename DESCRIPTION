@@ -21,3 +21,19 @@ Imports:
     S7,
     stats,
     xcms
+Collate: 
+    'assemble_bin_traces.R'
+    'bin_peaks.R'
+    'collect_zoi_masses.R'
+    'estimate_instrument_shift.R'
+    'estimate_noise.R'
+    'find_zoi.R'
+    'flag_isolated_zoi.R'
+    'match_zoi_across_files.R'
+    'paramounter-package.R'
+    'validate.R'
+    'pm_config.R'
+    'smooth_intensity.R'
+    'universal_parameters.R'
+    'zoi_features.R'
+    'zzz.R'
