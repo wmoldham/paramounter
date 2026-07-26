@@ -16,12 +16,53 @@ xcms/`Spectra`, not legacy MSnbase/xcmsSet.
 
 ### Reference material
 
-The verbatim original scripts are the ground truth for reproduction:
-`Paramounter_part1 (V2).R` (ppm-cutoff determination), `Paramounter_part2 (V2).R` (the
-measurement loop, aggregation, and point estimates), and `XCMS.R` (a hardcoded demo of
-the xcms workflow). **Their location on this machine is not currently recorded — ask
-before assuming a path.** The paper PDF is in Zotero storage
-(`~/Zotero/storage/I3PYUUUS/2022_guo_paramounter.pdf`).
+The verbatim original scripts are the ground truth for reproduction and live in
+`reference/` — gitignored and `.Rbuildignore`d, so they are local-only:
+
+- `Paramounter_part1 (V2).R` — ppm-cutoff determination
+- `Paramounter_part2 (V2).R` — the measurement loop, aggregation, and point estimates
+- `XCMS.R` — a hardcoded demo of the xcms workflow
+- `Paramounter User Manual Version 3.0.pdf`
+
+Refetch them from `https://raw.githubusercontent.com/HuanLab-backup/Paramounter/main/`.
+The paper PDF is in Zotero storage
+(`~/Zotero/storage/I3PYUUUS/2022_guo_paramounter.pdf`); its supporting information
+carries the published parameter tables.
+
+### Demo data
+
+`inst/extdata/UrineOriginal1-5.mzXML` (committed, 61 MB) are the upstream demo files
+from the same repository's `Demo Data.zip`: five technical replicates of a urine sample
+on a **Bruker maXis impact Q-TOF, ESI RP(+), centroided, 7473 scans per file**. Reach
+them with `system.file("extdata", package = "paramounter")`.
+
+They are the reproduction target. Table S-7 of the SI publishes the Paramounter → xcms
+values for exactly this dataset (its "Urine in Bruker Q-TOF RP(+) DDA mode" row):
+
+| ppm | peakwidth | mzdiff | snthresh | integrate | prefilter | noise | bw | minfrac | mzwid | minsamp | max |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 30 | 0, 28.5 | -0.01 | 3 | 1 | 3, 298 | 298 | 5 | 0.5 | 0.006 | 1 | 100 |
+
+### Reproduction status (2026-07-26)
+
+`paramounter(files, pm_config(ppm_cutoff = 30))` then `to_xcms()` reproduces **11 of 12**
+published values exactly: `peakwidth 0, 28.5`, `snthresh 3`, `prefilter 3, 298`,
+`noise 298`, `bw 5`, `mzdiff -0.01`, `integrate 1`, `minfrac 0.5`, `minsamp 1`,
+`max 100`, and `ppm 30`. Runtime is ~19 s per file, ~90 s for all five.
+
+The one gap is grouping `mzwid`/`binSize`: 0.00708 vs the published 0.006. It comes down
+to **a single matched feature out of 92** — exactly one exceeds 0.006, and without it the
+trimmed maximum is 0.00556, which rounds to the published value. Diagnosing it properly
+means a verbatim-port comparison of part 2's cross-file matching block (lines 259–310),
+which has not been done; do that before treating it as a bug or changing any code.
+
+**Why `ppm_cutoff` must be passed explicitly to reproduce.** In the original this is a
+*human-entered* number: part 1 plots the ppm distribution with a dashed line at the
+`ppm_quantile` position and prints "find the cutoff line ... and run part 2 using the ppm
+cutoff"; part 2 then hardcodes it (`ppmCut <- 40`). The published 30 is that dashline
+rounded down by eye. Our automatic path computes the dashline faithfully — here ~32.4 —
+so `ppm_cutoff = NULL` yields `ppm 33`, not 30. Neither is wrong; the original just has a
+human in the loop that the port cannot reproduce.
 
 ## Commands
 
@@ -150,7 +191,9 @@ shared path.
 
 - **ppm cutoff**: `ppm_cutoff = NULL` means auto — computed from the pooled ppm
   distribution at `ppm_quantile` (default `0.95`), reproducing part 1 of the original.
-  A number sets it manually.
+  A number sets it manually. Note this is the one place the original has a human in the
+  loop, so reproducing published values needs the number passed explicitly — see
+  **Reproduction status**.
 - **Point estimates live in the translation layer**, not in `universal_parameters`,
   which stays software-agnostic. The ceiling/floor rounding, the peak-width
   `+4`/`+5`/`+7` conditional with its 5%-trimmed-mean height:width ratio, the
