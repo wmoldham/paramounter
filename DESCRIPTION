@@ -34,6 +34,7 @@ Collate:
     'match_zoi_across_files.R'
     'measure_file.R'
     'paramounter-package.R'
+    'paramounter.R'
     'validate.R'
     'pm_config.R'
     'read_ms_data.R'

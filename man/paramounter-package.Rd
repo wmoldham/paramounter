@@ -2,7 +2,6 @@
 % Please edit documentation in R/paramounter-package.R
 \docType{package}
 \name{paramounter-package}
-\alias{paramounter}
 \alias{paramounter-package}
 \title{paramounter: What the Package Does (One Line, Title Case)}
 \description{
