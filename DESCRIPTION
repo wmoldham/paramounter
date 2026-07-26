@@ -31,6 +31,7 @@ Collate:
     'find_zoi.R'
     'flag_isolated_zoi.R'
     'match_zoi_across_files.R'
+    'measure_file.R'
     'paramounter-package.R'
     'validate.R'
     'pm_config.R'
