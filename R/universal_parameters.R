@@ -118,3 +118,78 @@ method(print, universal_parameters) <- function(x, ...) {
   print(s, row.names = FALSE)
   invisible(x)
 }
+
+#' Plot the universal-parameter distributions
+#'
+#' Draws a diagnostic panel of histograms, one per measured quantity, with the
+#' driving statistic marked — the minimum or maximum that feeds the software
+#' parameters (both, for peak width in seconds). Quantities with no measurements,
+#' such as the instrument shifts when only one file was analysed, are omitted.
+#' The exact per-software parameter values come from [to_xcms()], [to_msdial()],
+#' and [to_mzmine()].
+#'
+#' @param x A [universal_parameters] object.
+#' @param ... Ignored.
+#'
+#' @return `x`, invisibly.
+#'
+#' @examples
+#' \dontrun{
+#' params <- paramounter(files)
+#' plot(params)
+#' }
+#'
+#' @export
+method(plot, universal_parameters) <- function(x, ...) {
+  d <- x@distributions
+  meta <- list(
+    ppm = list(label = "mass tolerance (ppm)", drive = "max"),
+    mz_diff = list(label = "mass tolerance (Da)", drive = "max"),
+    noise = list(label = "noise level", drive = "min"),
+    width_seconds = list(label = "peak width (s)", drive = "range"),
+    width_scans = list(label = "peak width (scans)", drive = "min"),
+    sn = list(label = "signal / noise", drive = "min"),
+    height = list(label = "peak height (log10)", drive = "min", log = TRUE),
+    mass_shift = list(label = "mass shift (Da)", drive = "max"),
+    rt_shift = list(label = "RT shift (s)", drive = "max")
+  )
+  canonical_order <- names(meta)
+  present <- canonical_order[vapply(d[canonical_order], length, integer(1)) > 0L]
+  if (length(present) == 0L) {
+    stop("No non-empty distributions to plot.", call. = FALSE)
+  }
+
+  n <- length(present)
+  ncols <- if (n == 1L) 1L else if (n <= 4L) 2L else 3L
+  nrows <- ceiling(n / ncols)
+  op <- graphics::par(mfrow = c(nrows, ncols), mar = c(4, 4, 3, 1))
+  on.exit(graphics::par(op))
+
+  for (q in present) {
+    m <- meta[[q]]
+    v <- d[[q]]
+    plot_values <- if (isTRUE(m$log)) log10(v) else v
+    graphics::hist(
+      plot_values,
+      main = m$label,
+      xlab = "",
+      ylab = "count",
+      col = "grey85",
+      border = "white"
+    )
+    mark <- function(value, text) {
+      position <- if (isTRUE(m$log)) log10(value) else value
+      graphics::abline(v = position, col = "firebrick", lty = 2, lwd = 2)
+      graphics::mtext(text, side = 3, at = position, cex = 0.7, col = "firebrick")
+    }
+    if (m$drive == "max") {
+      mark(max(v), sprintf("max %.4g", max(v)))
+    } else if (m$drive == "min") {
+      mark(min(v), sprintf("min %.4g", min(v)))
+    } else {
+      mark(min(v), sprintf("min %.4g", min(v)))
+      mark(max(v), sprintf("max %.4g", max(v)))
+    }
+  }
+  invisible(x)
+}
