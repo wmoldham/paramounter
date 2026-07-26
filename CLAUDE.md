@@ -50,11 +50,27 @@ published values exactly: `peakwidth 0, 28.5`, `snthresh 3`, `prefilter 3, 298`,
 `noise 298`, `bw 5`, `mzdiff -0.01`, `integrate 1`, `minfrac 0.5`, `minsamp 1`,
 `max 100`, and `ppm 30`. Runtime is ~19 s per file, ~90 s for all five.
 
-The one gap is grouping `mzwid`/`binSize`: 0.00708 vs the published 0.006. It comes down
-to **a single matched feature out of 92** — exactly one exceeds 0.006, and without it the
-trimmed maximum is 0.00556, which rounds to the published value. Diagnosing it properly
-means a verbatim-port comparison of part 2's cross-file matching block (lines 259–310),
-which has not been done; do that before treating it as a bug or changing any code.
+The one gap is grouping `mzwid`/`binSize`: 0.00708 vs the published 0.006.
+
+**Diagnosed.** A verbatim port of part 2's matching block (lines 259–332) run on the same
+clean-ZOI input returns results *bit-identical* to
+`match_zoi_across_files(legacy_first_match = TRUE)` — 95 features, `mass_shift`
+differences exactly 0. The port is faithful; there is no bug to fix. The ppm cutoff is
+not the lever either: sweeping it over 29–30.5 leaves the clean set unchanged at 95
+features and `mzwid` at 0.00708.
+
+The cause is the first-match rule itself. Exactly **one feature of 95** is mis-paired:
+anchor m/z 481.12942 matches file 5's 481.118316 (11 mDa away) when 481.128420 (1 mDa)
+sat in the same ±0.015 Da window. That inflated value changes which values survive the
+97% trim, lifting the trimmed maximum from 0.00579 to 0.00708. Correcting the matching
+rule *alone* gives 0.00579 → 0.006, exactly the published value.
+
+Note this is **not** what `legacy = FALSE` does: that flag also switches isolation to
+both-sides, which rebuilds the clean set and lands back at 0.00708 (with `prefilter` 2
+and `bw` 7.3). So no supported setting reproduces all 12 values at once — 11 of 12 under
+`legacy = TRUE` is the honest ceiling, and why the twelfth differs is now understood.
+Why the authors' own run avoided the mis-pairing is not recoverable: it depends on their
+within-window zone ordering, which their published output does not record.
 
 **Why `ppm_cutoff` must be passed explicitly to reproduce.** In the original this is a
 *human-entered* number: part 1 plots the ppm distribution with a dashed line at the

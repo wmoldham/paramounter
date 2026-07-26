@@ -1,5 +1,5 @@
 Package: paramounter
-Title: What the Package Does (One Line, Title Case)
+Title: Measure LC-MS Processing Parameters Directly from Your Data
 Version: 0.0.0.9000
 Authors@R: c(
     person("William", "Oldham", , "wm.oldham@gmail.com", role = c("aut", "cre"),
@@ -7,7 +7,15 @@ Authors@R: c(
     person("Jian", "Guo", role = "cph"),
     person("Tao", "Huan", role = "cph")
   )
-Description: What the package does (one paragraph).
+Description: Measures universal liquid chromatography-mass spectrometry
+    parameters - mass tolerance, noise level, peak width, signal-to-noise
+    ratio, peak height, and instrument mass and retention time shift -
+    directly from centroided data files, then translates them into
+    processing settings for 'xcms', MS-DIAL, and MZmine. Unlike approaches
+    that search a parameter space against an objective function, the
+    parameters are measured from the data itself, so a single pass over the
+    files is enough. Implements the method of Guo and Huan (2022)
+    <doi:10.1021/acs.analchem.1c04758>.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
