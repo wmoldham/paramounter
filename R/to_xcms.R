@@ -11,46 +11,35 @@
 #'
 #' @return A named list of the computed values.
 #' @noRd
+#' @noRd
 xcms_values <- function(params, sample_groups = NULL) {
-  d <- params@distributions
-  required <- c("ppm", "noise", "width_seconds", "width_scans", "sn", "height")
-  empty <- required[vapply(d[required], length, integer(1)) == 0L]
-  if (length(empty) > 0L) {
+  est <- point_estimates(params@distributions)
+  missing <- character(0)
+  if (is.na(est$max_ppm)) missing <- c(missing, "ppm")
+  if (is.na(est$min_noise)) missing <- c(missing, "noise")
+  if (is.na(est$min_peak_scan)) missing <- c(missing, "width_scans")
+  if (is.na(est$min_sn)) missing <- c(missing, "sn")
+  if (anyNA(est$peakwidth)) missing <- c(missing, "width_seconds/height")
+  if (length(missing) > 0L) {
     stop(
-      sprintf("Cannot derive xcms parameters: no measurements for %s.", paste(empty, collapse = ", ")),
+      sprintf("Cannot derive xcms parameters: no measurements for %s.", paste(missing, collapse = ", ")),
       call. = FALSE
     )
   }
   legacy <- params@config@legacy
   n_files <- length(params@files)
-
-  ppm <- ceiling(max(d$ppm))
-  minnoise <- floor(min(d$noise))
-  w <- mean(d$width_seconds, trim = 0.05)
-  h <- mean(d$height, trim = 0.05)
-  ratio <- h / w
-  min_pw <- min(d$width_seconds)
-  max_pw <- max(d$width_seconds)
-  if (max_pw > 35 && ratio > 515) {
-    peakwidth <- c(0, (ceiling(max_pw) + 7) / 2)
-  } else {
-    peakwidth <- c(ceiling(min_pw) + 4, ceiling(max_pw) + 5)
-  }
-  minpeakscan <- floor(min(d$width_scans))
-  snthresh <- max(3, min(d$sn))
-  bw <- if (!legacy && length(d$rt_shift) > 0L) max(d$rt_shift) else 5
-  binSize <- if (length(d$mass_shift) > 0L) max(d$mass_shift) else 0.012
+  bw <- if (!legacy && !is.na(est$max_rt_shift)) est$max_rt_shift else 5
+  binSize <- if (!is.na(est$max_mass_shift)) est$max_mass_shift else 0.012
   if (is.null(sample_groups)) {
     sample_groups <- rep(1L, n_files)
   }
-
   list(
-    ppm = ppm,
-    peakwidth = peakwidth,
-    snthresh = snthresh,
-    prefilter = c(minpeakscan, minnoise),
+    ppm = est$max_ppm,
+    peakwidth = est$peakwidth,
+    snthresh = est$min_sn,
+    prefilter = c(est$min_peak_scan, est$min_noise),
     mzdiff = -0.01,
-    noise = minnoise,
+    noise = est$min_noise,
     integrate = 1L,
     bw = bw,
     binSize = binSize,
