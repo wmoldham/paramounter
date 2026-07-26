@@ -23,6 +23,7 @@ Imports:
     stats,
     xcms
 Collate: 
+    'aggregate_files.R'
     'assemble_bin_traces.R'
     'bin_peaks.R'
     'collect_zoi_masses.R'
