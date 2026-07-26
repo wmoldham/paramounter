@@ -18,16 +18,16 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-Peak picking software such as xcms, MS-DIAL, and MZmine requires the user to supply
-processing parameters. Mass tolerance, noise threshold, expected peak width, and
-minimum signal-to-noise ratio all have to be set before peak detection can run, and
-the results depend heavily on the values chosen.
+Peak picking software such as **xcms**, **MS-DIAL**, and **MZmine** requires the user
+to supply processing parameters. Mass tolerance, noise threshold, expected peak width,
+and minimum signal-to-noise ratio all have to be set before peak detection can run,
+and the results depend heavily on the values chosen.
 
-paramounter determines these values by measuring them from the raw data. It examines
-individual chromatographic peaks in your files, records how each one behaves, and
-summarises those measurements into processing parameters. It does not repeatedly run
-a peak picker and score the results, so a single pass over the files is sufficient.
-One file takes roughly twenty seconds.
+**paramounter** determines these values by measuring them from the raw data. It
+examines individual chromatographic peaks in your files, records how each one behaves,
+and summarises those measurements into processing parameters. It does not repeatedly
+run a peak picker and score the results, so a single pass over the files is
+sufficient. One file takes roughly twenty seconds.
 
 The method was published by
 [Guo and Huan (2022)](https://doi.org/10.1021/acs.analchem.1c04758), *Analytical
@@ -237,16 +237,30 @@ in which a fixed lower bound would reject real peaks.
 
 ## Usage
 
+The package ships five urine data files, which the examples below use. Point
+`list.files()` at your own directory to analyse your own data.
+
 ```r
 library(paramounter)
 
-files <- list.files("my_data", pattern = "\\.mzML$", full.names = TRUE)
+files <- list.files(
+  system.file("extdata", package = "paramounter"),
+  pattern = "\\.mzXML$",
+  full.names = TRUE
+)
+
 params <- paramounter(files)
 
 params@summary
 plot(params)
+```
 
+`to_xcms()` returns the three parameter objects an xcms workflow needs, ready to pass
+to the corresponding functions.
+
+```r
 xp <- to_xcms(params)
+
 data <- xcms::findChromPeaks(data, xp$chrom_peaks)
 data <- xcms::groupChromPeaks(data, xp$group)
 data <- xcms::adjustRtime(data, xp$retention)
@@ -291,9 +305,9 @@ analyses.
 
 ## Reproducing the published results
 
-The package includes the five urine samples distributed with the original tool. They
-were acquired on a Bruker maXis impact Q-TOF in positive mode with reversed-phase
-chromatography, and each contains 633 MS1 scans.
+The five files shipped with the package are the urine samples distributed with the
+original tool. They were acquired on a Bruker maXis impact Q-TOF in positive mode with
+reversed-phase chromatography, and each contains 633 MS1 scans.
 
 ```{r run, message = FALSE, warning = FALSE}
 library(paramounter)
