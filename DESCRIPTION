@@ -39,6 +39,7 @@ Collate:
     'pm_config.R'
     'read_ms_data.R'
     'smooth_intensity.R'
+    'to_xcms.R'
     'universal_parameters.R'
     'zoi_features.R'
     'zzz.R'
