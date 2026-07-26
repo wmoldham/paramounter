@@ -31,7 +31,7 @@ and Tao Huan are credited as copyright holders.
 
 ``` r
 # install.packages("pak")
-pak::pak("USERNAME/paramounter")   # <- replace with the repository path
+pak::pak("wmoldham/paramounter")
 ```
 
 ## Quick start
