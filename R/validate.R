@@ -146,6 +146,18 @@ check_index <- function(x, name, n, within) {
 }
 
 #' @noRd
+check_unit_fraction <- function(x, name) {
+  check_scalar(
+    x,
+    name,
+    "a single number in (0, 1]",
+    min = 0,
+    min_strict = TRUE,
+    max = 1
+  )
+}
+
+#' @noRd
 check_flag <- function(x, name) {
   if (!is.logical(x) || length(x) != 1L || is.na(x)) {
     stop(
@@ -154,6 +166,75 @@ check_flag <- function(x, name) {
     )
   }
   invisible(x)
+}
+
+#' Validate that an argument is an instance of an S7 class
+#'
+#' The class name in the message is taken from the class itself, so the wording
+#' cannot drift away from the class it checks.
+#'
+#' @param x Value to check.
+#' @param class An S7 class object, such as [pm_config].
+#' @param name Argument name, used in the error message.
+#'
+#' @return `x`, invisibly.
+#' @noRd
+check_s7 <- function(x, class, name) {
+  if (!S7::S7_inherits(x, class)) {
+    stop(
+      sprintf("`%s` must be a %s object.", name, class@name),
+      call. = FALSE
+    )
+  }
+  invisible(x)
+}
+
+#' Validate a list argument
+#'
+#' @param x Value to check.
+#' @param name Argument name, used in the error message.
+#'
+#' @return `x`, invisibly.
+#' @noRd
+check_list <- function(x, name) {
+  if (!is.list(x)) {
+    stop(
+      sprintf("`%s` must be a list.", name),
+      call. = FALSE
+    )
+  }
+  invisible(x)
+}
+
+#' Validate that two parallel lists have element-wise matching lengths
+#'
+#' The per-scan m/z and intensity lists must line up element by element, not
+#' just in overall length. The callers differ in how they check the outer
+#' length — [bin_peaks()] compares the two lists, [collect_zoi_masses()]
+#' compares both against the EIC — so only this inner check is shared.
+#'
+#' @param mz_list,int_list Parallel lists to compare.
+#' @param mz_name,int_name Argument names, used in the error message.
+#'
+#' @return `mz_list`, invisibly.
+#' @noRd
+check_matching_lengths <- function(
+    mz_list,
+    int_list,
+    mz_name = "mz_list",
+    int_name = "int_list"
+) {
+  if (!all(lengths(mz_list) == lengths(int_list))) {
+    stop(
+      sprintf(
+        "Each element of `%s` and `%s` must have matching length.",
+        mz_name,
+        int_name
+      ),
+      call. = FALSE
+    )
+  }
+  invisible(mz_list)
 }
 
 #' Convert a stop-based check into an S7 validator message

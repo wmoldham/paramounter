@@ -1,5 +1,29 @@
 # pm_config.R
 
+#' Build a property validator from a `check_*` function
+#'
+#' Every `pm_config` property validates the same way: run a `check_*` helper and
+#' hand S7 the `NULL`-or-string form it wants. Without this, each of the fourteen
+#' properties carried its own copy of that closure.
+#'
+#' The property name is still passed as a string, because an S7 validator
+#' receives only the value and has no way to learn which property it guards.
+#'
+#' Note this must be defined *above* the class's roxygen block: a helper placed
+#' between that block and `new_class()` merges the two blocks, and this one's
+#' `@noRd` then suppresses the class's own help page.
+#'
+#' @param check A `check_*` function taking `(value, name)`.
+#' @param name The property name, used in the error message.
+#'
+#' @return A validator function suitable for `new_property()`.
+#' @noRd
+checked <- function(check, name) {
+  force(check)
+  force(name)
+  function(value) as_message(check(value, name))
+}
+
 #' Configuration for a Paramounter analysis
 #'
 #' Bundles every setting that controls parameter estimation into one validated
@@ -51,100 +75,84 @@
 #' @export
 pm_config <- new_class(
   "pm_config",
+  # class_any throughout: the check_* helpers do the type work and give better
+  # messages than S7's own class dispatch would
   properties = list(
     bin_width = new_property(
       class_any,
       default = 0.05,
-      validator = function(value) as_message(check_positive_number(value, "bin_width"))
+      validator = checked(check_positive_number, "bin_width")
     ),
     smooth_half_window = new_property(
       class_any,
       default = 0L,
-      validator = function(value) as_message(check_nonneg_integer(value, "smooth_half_window"))
+      validator = checked(check_nonneg_integer, "smooth_half_window")
     ),
     noise_block_size = new_property(
       class_any,
       default = 10L,
-      validator = function(value) as_message(check_count(value, "noise_block_size"))
+      validator = checked(check_count, "noise_block_size")
     ),
     noise_sd_factor = new_property(
       class_any,
       default = 3,
-      validator = function(value) as_message(check_nonneg_number(value, "noise_sd_factor"))
+      validator = checked(check_nonneg_number, "noise_sd_factor")
     ),
     mass_sd_range = new_property(
       class_any,
       default = 2,
-      validator = function(value) as_message(check_positive_number(value, "mass_sd_range"))
+      validator = checked(check_positive_number, "mass_sd_range")
     ),
+    # the only optional setting: NULL means "derive the cutoff from the data"
     ppm_cutoff = new_property(
       class_any,
       default = NULL,
-      validator = function(value) {
-        if (is.null(value)) {
-          NULL
-        } else {
-          as_message(check_positive_number(value, "ppm_cutoff"))
-        }
-      }
+      validator = checked(
+        function(value, name) {
+          if (!is.null(value)) check_positive_number(value, name)
+        },
+        "ppm_cutoff"
+      )
     ),
     ppm_quantile = new_property(
       class_any,
       default = 0.95,
-      validator = function(value) {
-        as_message(check_scalar(
-          value,
-          "ppm_quantile",
-          "a single number in (0, 1]",
-          min = 0,
-          min_strict = TRUE,
-          max = 1
-        ))
-      }
+      validator = checked(check_unit_fraction, "ppm_quantile")
     ),
     min_masses = new_property(
       class_any,
       default = 2L,
-      validator = function(value) as_message(check_count(value, "min_masses"))
+      validator = checked(check_count, "min_masses")
     ),
     max_masses = new_property(
       class_any,
       default = 199L,
-      validator = function(value) as_message(check_count(value, "max_masses"))
+      validator = checked(check_count, "max_masses")
     ),
     isolation_gap = new_property(
       class_any,
       default = 300,
-      validator = function(value) as_message(check_nonneg_number(value, "isolation_gap"))
+      validator = checked(check_nonneg_number, "isolation_gap")
     ),
     match_mz_tol = new_property(
       class_any,
       default = 0.015,
-      validator = function(value) as_message(check_positive_number(value, "match_mz_tol"))
+      validator = checked(check_positive_number, "match_mz_tol")
     ),
     match_rt_tol = new_property(
       class_any,
       default = 30,
-      validator = function(value) as_message(check_positive_number(value, "match_rt_tol"))
+      validator = checked(check_positive_number, "match_rt_tol")
     ),
     trim = new_property(
       class_any,
       default = 0.97,
-      validator = function(value) {
-        as_message(check_scalar(
-          value,
-          "trim",
-          "a single number in (0, 1]",
-          min = 0,
-          min_strict = TRUE,
-          max = 1
-        ))
-      }
+      validator = checked(check_unit_fraction, "trim")
     ),
     legacy = new_property(
       class_any,
       default = FALSE,
-      validator = function(value) as_message(check_flag(value, "legacy"))
+      validator = checked(check_flag, "legacy")
     )
   ),
   validator = function(self) {

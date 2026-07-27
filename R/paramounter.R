@@ -45,9 +45,7 @@ paramounter <- function(files, config = pm_config(), reader = read_ms_data) {
       call. = FALSE
     )
   }
-  if (!S7::S7_inherits(config, pm_config)) {
-    stop("`config` must be a pm_config object.", call. = FALSE)
-  }
+  check_s7(config, pm_config, "config")
   if (!is.function(reader)) {
     stop("`reader` must be a function.", call. = FALSE)
   }

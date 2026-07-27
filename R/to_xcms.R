@@ -11,27 +11,24 @@
 #'
 #' @return A named list of the computed values.
 #' @noRd
-#' @noRd
 xcms_values <- function(params, sample_groups = NULL) {
   est <- point_estimates(params@distributions)
-  missing <- character(0)
-  if (is.na(est$max_ppm)) missing <- c(missing, "ppm")
-  if (is.na(est$min_noise)) missing <- c(missing, "noise")
-  if (is.na(est$min_peak_scan)) missing <- c(missing, "width_scans")
-  if (is.na(est$min_sn)) missing <- c(missing, "sn")
-  if (anyNA(est$peakwidth)) missing <- c(missing, "width_seconds/height")
-  if (length(missing) > 0L) {
-    stop(
-      sprintf("Cannot derive xcms parameters: no measurements for %s.", paste(missing, collapse = ", ")),
-      call. = FALSE
-    )
-  }
+  require_estimates(
+    est,
+    c(
+      ppm = "max_ppm",
+      noise = "min_noise",
+      width_scans = "min_peak_scan",
+      sn = "min_sn",
+      "width_seconds/height" = "peakwidth"
+    ),
+    "xcms"
+  )
   legacy <- params@config@legacy
-  n_files <- length(params@files)
   bw <- if (!legacy && !is.na(est$max_rt_shift)) est$max_rt_shift else 5
   binSize <- if (!is.na(est$max_mass_shift)) est$max_mass_shift else 0.012
   if (is.null(sample_groups)) {
-    sample_groups <- rep(1L, n_files)
+    sample_groups <- rep(1L, length(params@files))
   }
   list(
     ppm = est$max_ppm,
@@ -89,9 +86,7 @@ xcms_values <- function(params, sample_groups = NULL) {
 #'
 #' @export
 to_xcms <- function(params, sample_groups = NULL) {
-  if (!S7::S7_inherits(params, universal_parameters)) {
-    stop("`params` must be a universal_parameters object.", call. = FALSE)
-  }
+  check_s7(params, universal_parameters, "params")
   if (!is.null(sample_groups) && length(sample_groups) != length(params@files)) {
     stop("`sample_groups` must have one entry per file.", call. = FALSE)
   }

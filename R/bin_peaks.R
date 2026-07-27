@@ -39,30 +39,15 @@
 #'
 #' @export
 bin_peaks <- function(mz_list, int_list, bin_width = 0.05, mz_range = NULL) {
-  if (!is.list(mz_list)) {
-    stop(
-      "`mz_list` must be a list.",
-      call. = FALSE
-    )
-  }
-  if (!is.list(int_list)) {
-    stop(
-      "`int_list` must be a list.",
-      call. = FALSE
-    )
-  }
+  check_list(mz_list, "mz_list")
+  check_list(int_list, "int_list")
   if (length(mz_list) != length(int_list)) {
     stop(
       "`mz_list` and `int_list` must have the same length.",
       call. = FALSE
     )
   }
-  if (!all(lengths(mz_list) == lengths(int_list))) {
-    stop(
-      "Each element of `mz_list` and `int_list` must have matching length.",
-      call. = FALSE
-    )
-  }
+  check_matching_lengths(mz_list, int_list)
   n_scans <- length(mz_list)
   mz <- unlist(mz_list, use.names = FALSE)
   intensity <- unlist(int_list, use.names = FALSE)

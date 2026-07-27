@@ -54,18 +54,8 @@ collect_zoi_masses <- function(
     min_points = 5L,
     fence = 1.5
 ) {
-  if (!is.list(mz_list)) {
-    stop(
-      "`mz_list` must be a list.",
-      call. = FALSE
-    )
-  }
-  if (!is.list(int_list)) {
-    stop(
-      "`int_list` must be a list.",
-      call. = FALSE
-    )
-  }
+  check_list(mz_list, "mz_list")
+  check_list(int_list, "int_list")
   check_numeric_vector(eic, "eic")
   n <- length(eic)
   if (length(mz_list) != n || length(int_list) != n) {
@@ -74,12 +64,7 @@ collect_zoi_masses <- function(
       call. = FALSE
     )
   }
-  if (!all(lengths(mz_list) == lengths(int_list))) {
-    stop(
-      "Each element of `mz_list` and `int_list` must have matching length.",
-      call. = FALSE
-    )
-  }
+  check_matching_lengths(mz_list, int_list)
   check_nonneg_number(cutoff, "cutoff")
   check_index(apex, "apex", n, "eic")
   check_finite_number(reference_mz, "reference_mz")

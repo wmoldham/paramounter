@@ -45,9 +45,7 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
   if (length(rtime) != length(mz)) {
     stop("`rtime` must have one value per scan (the same length as `mz`).", call. = FALSE)
   }
-  if (!S7::S7_inherits(config, pm_config)) {
-    stop("`config` must be a pm_config object.", call. = FALSE)
-  }
+  check_s7(config, pm_config, "config")
 
   binned <- bin_peaks(mz, intensity, bin_width = config@bin_width)
   n_scans <- binned$n_scans

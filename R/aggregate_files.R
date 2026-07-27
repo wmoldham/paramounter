@@ -92,9 +92,7 @@ aggregate_files <- function(per_file, files, config = pm_config()) {
   if (!is.character(files) || length(files) != length(per_file)) {
     stop("`files` must be a character vector, one per file.", call. = FALSE)
   }
-  if (!S7::S7_inherits(config, pm_config)) {
-    stop("`config` must be a pm_config object.", call. = FALSE)
-  }
+  check_s7(config, pm_config, "config")
 
   noise_pooled <- unlist(lapply(per_file, `[[`, "noise"))
   zoi_pooled <- do.call(rbind, lapply(per_file, `[[`, "zoi"))
@@ -124,9 +122,9 @@ aggregate_files <- function(per_file, files, config = pm_config()) {
     })
     matched <- match_zoi_across_files(
       clean,
-      config@match_mz_tol,
-      config@match_rt_tol,
-      config@legacy
+      mz_tol = config@match_mz_tol,
+      rt_tol = config@match_rt_tol,
+      legacy_first_match = config@legacy
     )
     shifts <- estimate_instrument_shift(matched)
     distributions$mass_shift <- trim_distribution(shifts$mass_shift, trim, "high")

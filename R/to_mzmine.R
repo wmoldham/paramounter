@@ -3,36 +3,37 @@
 #' @noRd
 mzmine_table <- function(params) {
   est <- point_estimates(params@distributions)
-  missing <- character(0)
-  if (is.na(est$min_noise)) missing <- c(missing, "noise")
-  if (is.na(est$min_peak_scan)) missing <- c(missing, "width_scans")
-  if (is.na(est$min_peak_height)) missing <- c(missing, "height")
-  if (is.na(est$max_ppm)) missing <- c(missing, "ppm")
-  if (anyNA(est$peakwidth)) missing <- c(missing, "width_seconds/height")
-  if (length(missing) > 0L) {
-    stop(
-      sprintf("Cannot derive MZmine parameters: no measurements for %s.", paste(missing, collapse = ", ")),
-      call. = FALSE
+  require_estimates(
+    est,
+    c(
+      noise = "min_noise",
+      width_scans = "min_peak_scan",
+      height = "min_peak_height",
+      ppm = "max_ppm",
+      "width_seconds/height" = "peakwidth"
+    ),
+    "MZmine"
+  )
+  parameter_table(
+    parameter = c(
+      "mass detection: noise level",
+      "ADAP chromatogram builder: min group size (scans)",
+      "ADAP chromatogram builder: group intensity threshold",
+      "ADAP chromatogram builder: min highest intensity",
+      "ADAP chromatogram builder: m/z tolerance (ppm)",
+      "chromatogram deconvolution: peak duration min (min)",
+      "chromatogram deconvolution: peak duration max (min)"
+    ),
+    value = c(
+      est$min_noise, est$min_peak_scan, est$min_noise, est$min_peak_height,
+      est$max_ppm, est$peakwidth[1] / 60, est$peakwidth[2] / 60
+    ),
+    est = est,
+    shift_labels = c(
+      "alignment: m/z tolerance (Da)",
+      "alignment: RT tolerance (min)"
     )
-  }
-  parameter <- c(
-    "mass detection: noise level",
-    "ADAP chromatogram builder: min group size (scans)",
-    "ADAP chromatogram builder: group intensity threshold",
-    "ADAP chromatogram builder: min highest intensity",
-    "ADAP chromatogram builder: m/z tolerance (ppm)",
-    "chromatogram deconvolution: peak duration min (min)",
-    "chromatogram deconvolution: peak duration max (min)"
   )
-  value <- c(
-    est$min_noise, est$min_peak_scan, est$min_noise, est$min_peak_height,
-    est$max_ppm, est$peakwidth[1] / 60, est$peakwidth[2] / 60
-  )
-  if (!is.na(est$max_mass_shift)) {
-    parameter <- c(parameter, "alignment: m/z tolerance (Da)", "alignment: RT tolerance (min)")
-    value <- c(value, est$max_mass_shift, est$max_rt_shift / 60)
-  }
-  data.frame(parameter = parameter, value = round(value, 3), stringsAsFactors = FALSE)
 }
 
 #' Translate universal parameters to MZmine settings
@@ -61,12 +62,6 @@ mzmine_table <- function(params) {
 #'
 #' @export
 to_mzmine <- function(params, file = NULL) {
-  if (!S7::S7_inherits(params, universal_parameters)) {
-    stop("`params` must be a universal_parameters object.", call. = FALSE)
-  }
-  table <- mzmine_table(params)
-  if (!is.null(file)) {
-    utils::write.csv(table, file, row.names = FALSE)
-  }
-  table
+  check_s7(params, universal_parameters, "params")
+  write_table_maybe(mzmine_table(params), file)
 }

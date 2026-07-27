@@ -1,6 +1,8 @@
-# paramounter (development version)
+# paramounter 0.0.0.9000
 
 First working version. The package is not yet released; it installs from GitHub only.
+(R's `NEWS.md` parser only recognises a literal version in the heading, so this says
+`0.0.0.9000` rather than the usual "development version".)
 
 ## Behaviour change
 
