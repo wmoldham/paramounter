@@ -83,15 +83,58 @@ test_that("measure_file reproduces the original inner loop across synthetic file
     }
     list(mz = mzD, int = intD, rtime = seq(0, by = 6, length.out = n_scans))
   }
+  # orig_measure_file hardcodes the original's legacy semantics: `cps` counts
+  # rightInd - leftInd (the +2 scan span) and `in_shift` looks forward only. So
+  # the comparison must pin legacy = TRUE rather than lean on the default.
   set.seed(101)
   for (rep in 1:15) {
     sp <- make_lcms(sample(50:90, 1), sample(8:20, 1))
     a <- orig_measure_file(sp$mz, sp$int, sp$rtime)
-    b <- measure_file(sp$mz, sp$int, sp$rtime)
+    b <- measure_file(sp$mz, sp$int, sp$rtime, pm_config(legacy = TRUE))
     expect_equal(b$noise, a$noise)
     expect_equal(nrow(b$zoi), nrow(a$zoi))
     if (nrow(a$zoi) > 0) {
       for (col in names(a$zoi)) expect_equal(b$zoi[[col]], a$zoi[[col]])
+    }
+  }
+})
+
+test_that("legacy = FALSE changes only the scan count and the isolation flag", {
+  # The corrected branch has no verbatim original to compare against, so pin it
+  # relative to the legacy run instead: legacy touches exactly two columns, and
+  # every other measurement must come through untouched.
+  set.seed(202)
+  for (rep in 1:10) {
+    n <- sample(40:70, 1)
+    mz <- vector("list", n)
+    intn <- vector("list", n)
+    centres <- runif(sample(4:9, 1), 100, 105)
+    for (s in seq_len(n)) {
+      pm <- numeric(0)
+      pv <- numeric(0)
+      for (fc in centres) {
+        g <- 5e5 * exp(-0.5 * ((s - which(centres == fc) * 6) / 3)^2)
+        if (g > 1e3) {
+          pm <- c(pm, fc + rnorm(1, 0, fc * 3e-6))
+          pv <- c(pv, g)
+        }
+      }
+      o <- order(pm)
+      mz[[s]] <- pm[o]
+      intn[[s]] <- pv[o]
+    }
+    rtime <- seq(0, by = 6, length.out = n)
+    old <- measure_file(mz, intn, rtime, pm_config(legacy = TRUE))
+    new <- measure_file(mz, intn, rtime, pm_config(legacy = FALSE))
+
+    expect_equal(new$noise, old$noise)
+    expect_equal(nrow(new$zoi), nrow(old$zoi))
+    if (nrow(old$zoi) > 0) {
+      expect_identical(new$zoi$width_scans, old$zoi$width_scans - 1L)
+      unchanged <- setdiff(names(old$zoi), c("width_scans", "isolated"))
+      for (col in unchanged) expect_equal(new$zoi[[col]], old$zoi[[col]])
+      # both-sides isolation can only ever be stricter than forward-only
+      expect_true(all(new$zoi$isolated <= old$zoi$isolated))
     }
   }
 })

@@ -26,7 +26,10 @@ test_that("the separation must be strictly greater than min_gap", {
 
 test_that("legacy mode tests forward only, corrected mode tests both sides", {
   # zone 2 is 10 s after zone 1 but 690 s before zone 3
-  expect_identical(flag_isolated_zoi(c(100, 110, 800)), c(FALSE, TRUE, TRUE))
+  expect_identical(
+    flag_isolated_zoi(c(100, 110, 800), legacy_isolation = TRUE),
+    c(FALSE, TRUE, TRUE)
+  )
   expect_identical(
     flag_isolated_zoi(c(100, 110, 800), legacy_isolation = FALSE),
     c(FALSE, FALSE, TRUE)
@@ -81,7 +84,8 @@ test_that("legacy mode matches the original selection across random bins", {
   for (rep in 1:1000) {
     n <- sample(1:12, 1)
     rt <- sort(cumsum(c(runif(1, 0, 100), runif(max(n - 1, 0), 5, 900))))[seq_len(n)]
-    expect_identical(flag_isolated_zoi(rt), orig_isolated(rt))
+    # orig_isolated implements the original's forward-only rule
+    expect_identical(flag_isolated_zoi(rt, legacy_isolation = TRUE), orig_isolated(rt))
   }
 })
 

@@ -54,12 +54,16 @@ test_that("aggregate_files reproduces part 1 + part 2 across multi-file data", {
       for (s in seq_len(n_scans)) { o <- order(mzD[[s]]); mzD[[s]] <- mzD[[s]][o]; intD[[s]] <- intD[[s]][o] }
       list(mz = mzD, int = intD, rtime = seq(0, by = 6, length.out = n_scans)) })
   }
+  # orig_match takes the first candidate in the window (temp$mz[1]) and
+  # orig_aggregate consumes per_file verbatim, so both the measurement and the
+  # aggregation side must be pinned to legacy rather than relying on defaults.
   set.seed(202)
+  legacy <- pm_config(legacy = TRUE)
   for (rep in 1:12) {
     files <- make_multi(sample(2:4, 1), sample(10:22, 1), sample(60:100, 1))
-    per_file <- lapply(files, function(f) measure_file(f$mz, f$int, f$rtime))
+    per_file <- lapply(files, function(f) measure_file(f$mz, f$int, f$rtime, legacy))
     fn <- paste0("f", seq_along(files), ".mzML")
-    up <- aggregate_files(per_file, fn)
+    up <- aggregate_files(per_file, fn, legacy)
     a <- orig_aggregate(per_file)
     for (q in names(a)) expect_equal(sort(up@distributions[[q]]), sort(as.numeric(a[[q]])))
   }

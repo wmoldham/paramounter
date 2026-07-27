@@ -115,8 +115,9 @@ test_that("legacy mode matches the original algorithm across random datasets", {
   set.seed(41)
   for (rep in 1:300) {
     fl <- make_files(sample(2:5, 1), sample(5:40, 1), sample(0:15, 1))
+    # orig_match takes temp$mz[1], the first candidate in the window
     a <- orig_match(fl)
-    b <- match_zoi_across_files(fl)
+    b <- match_zoi_across_files(fl, legacy_first_match = TRUE)
     expect_equal(unname(b$mz), unname(a$mz))
     expect_equal(unname(b$rt), unname(a$rt))
   }

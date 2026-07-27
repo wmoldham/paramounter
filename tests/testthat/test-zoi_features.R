@@ -3,7 +3,10 @@
 test_that("a valid zone of interest produces the expected measurements", {
   rt <- seq(10, 28, by = 2)
   masses <- c(220.0098, 220.0100, 220.0102, 220.0101, 220.0099)
-  r <- zoi_features(masses, 220.0100, 2, 6, 4, rt, 5000, 100, 30, 120)
+  r <- zoi_features(
+    masses, 220.0100, 2, 6, 4, rt, 5000, 100, 30, 120,
+    legacy_scan_count = TRUE
+  )
   mass_sd <- sd(masses)
   expect_equal(r$reference_mz, 220.0100)
   expect_equal(r$apex_rt, 16)
@@ -82,9 +85,12 @@ test_that("matches the original feature arithmetic across random zones", {
     nsd <- if (runif(1) < 0.1) 0 else runif(1, 1, 200)
     cutoff <- runif(1, 1, 400)
     ppm_cut <- sample(c(Inf, runif(1, 1, 30)), 1)
+    # orig_features counts scans as rightInd - leftInd, the original's +2 span,
+    # so the port comparison pins legacy_scan_count rather than using the default
     z <- zoi_features(
       masses, center, left_edge, right_edge, apex, rtime,
-      apex_int, nmean, nsd, cutoff, sd_range = 2, ppm_cutoff = ppm_cut
+      apex_int, nmean, nsd, cutoff, sd_range = 2, ppm_cutoff = ppm_cut,
+      legacy_scan_count = TRUE
     )
     o <- orig_features(
       masses, center, left_edge - 1, right_edge + 1, apex,
@@ -137,7 +143,10 @@ test_that("scalar inputs are validated", {
 test_that("the scan-count toggle switches between legacy and corrected spans", {
   rt <- seq(10, 28, by = 2)
   masses <- c(220.0098, 220.0100, 220.0102, 220.0101, 220.0099)
-  legacy <- zoi_features(masses, 220.0100, 2, 6, 4, rt, 5000, 100, 30, 120)
+  legacy <- zoi_features(
+    masses, 220.0100, 2, 6, 4, rt, 5000, 100, 30, 120,
+    legacy_scan_count = TRUE
+  )
   corrected <- zoi_features(
     masses, 220.0100, 2, 6, 4, rt, 5000, 100, 30, 120,
     legacy_scan_count = FALSE
