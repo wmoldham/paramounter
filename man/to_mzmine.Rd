@@ -17,14 +17,17 @@ settings to enter.
 }
 \description{
 Converts a \link{universal_parameters} object into the MZmine parameter values,
-following the Paramounter method: the mass-detection noise level and the ADAP
-group intensity threshold are the rounded-down minimum noise; the minimum
-group size is the rounded-down minimum width in scans; the minimum highest
-intensity is the rounded-down minimum height; the m/z tolerance is the
-rounded-up maximum relative tolerance (ppm); the peak-duration range is the
-derived peak-width bounds in minutes; and, when instrument shifts are
-available, the alignment m/z and retention-time tolerances are the maximum
-mass shift and maximum retention-time shift in minutes.
+following the Paramounter method. The mass-detection noise level and the ADAP
+group intensity threshold are the rounded-down minimum noise. The minimum
+group size is the rounded-down minimum width in scans, and the minimum highest
+intensity the rounded-down minimum height. The m/z tolerance is the rounded-up
+maximum relative tolerance in ppm, and the peak-duration range is the derived
+peak-width bounds in minutes.
+}
+\details{
+When the instrument shifts are available, which needs two or more files, the
+alignment m/z tolerance is the maximum mass shift in Da and the alignment
+retention-time tolerance is the maximum retention-time shift in minutes.
 }
 \examples{
 \dontrun{

@@ -12,10 +12,10 @@
 #' peaks rather than with bins times scans. Reconstruct a single bin's per-scan
 #' traces with [assemble_bin_traces()].
 #'
-#' The bin edges are `seq(mz_range[1], mz_range[2], by = bin_width)`. A peak
-#' lying on or above the final edge falls outside every bin and is dropped; with
-#' the default range this affects only the single highest peak, as in the
-#' original.
+#' The bin edges are `seq(mz_range[1], mz_range[2], by = bin_width)`. A peak on
+#' or above the final edge falls outside every bin and is dropped. With the
+#' default range the final edge is the last whole `bin_width` step at or below
+#' the highest peak, so any peaks past it are lost, as in the original.
 #'
 #' @param mz_list List with one element per scan, each a numeric vector of the
 #'   m/z values in that scan (possibly empty). Elements must be finite.

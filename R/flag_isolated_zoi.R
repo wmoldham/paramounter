@@ -1,4 +1,4 @@
-# flag_isolate_zoi.R
+# flag_isolated_zoi.R
 
 #' Flag zones of interest that have no close neighbour
 #'
@@ -13,13 +13,13 @@
 #'
 #' The neighbour set is every zone detected in the bin, including zones that
 #' later fail the mass-count or ppm filters in [zoi_features()]: a nearby peak
-#' interferes with matching whether or not it yields a usable measurement. Apply
-#' this function to all apex retention times from [find_zoi()] and combine the
-#' result with the measurement filters afterwards.
+#' interferes with matching whether or not it yields a usable measurement. Pass
+#' every zone detected in the bin, then apply the measurement filters afterwards.
 #'
-#' @param apex_rt Numeric vector of apex retention times for the zones of
-#'   interest in one mass bin, in non-decreasing order (as returned by
-#'   [find_zoi()], whose zones are ordered by scan). Must be finite.
+#' @param apex_rt Numeric vector of apex retention times for the zones in one
+#'   mass bin, in non-decreasing order. Must be finite. [find_zoi()] returns scan
+#'   indices rather than times, so index your retention times by its `apex`
+#'   column; its zones are already ordered by scan.
 #' @param min_gap Single non-negative number giving the minimum separation, in
 #'   the same units as `apex_rt`, for a zone to count as isolated. Defaults to
 #'   `300` (five minutes, for retention times in seconds).

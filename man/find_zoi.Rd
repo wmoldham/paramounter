@@ -29,10 +29,10 @@ point) within the run. ZOIs are the starting points for measuring mass
 tolerance, peak height, and peak width.
 }
 \details{
-A run of length one (an isolated point above the cutoff) is returned as a
-single-point ZOI; the requirement that a real feature span at least two
-continuous points is applied later, during feature measurement, because the
-apex of even a single-point ZOI may extend once its mass trace is followed.
+A run of length one, an isolated point above the cutoff, is returned as a
+single-point ZOI. The minimum number of collected masses is applied later,
+during feature measurement, because following even a single-point ZOI's mass
+trace into the neighbouring scans can still gather enough values to measure.
 }
 \examples{
 find_zoi(c(2, 1, 50, 80, 40, 1, 90, 30, 1, 100), cutoff = 10)

@@ -23,8 +23,8 @@ empty_distributions <- function() {
 #' distributions measured across the input files, together with the settings and
 #' the files they came from. Software-specific parameter sets (for xcms,
 #' MS-DIAL, and MZmine) are produced from this object by the translation
-#' functions, and the diagnostic report is drawn from its distributions.
-#' Normally created by the analysis rather than by hand.
+#' functions, and `plot()` draws its distributions. Normally created by the
+#' analysis rather than by hand.
 #'
 #' The `summary` property is computed on access from `distributions`, so it
 #' always reflects them: one row per quantity giving the count and the minimum,
@@ -32,16 +32,17 @@ empty_distributions <- function() {
 #' given software parameter requires.
 #'
 #' @param distributions Named list holding one finite numeric vector per
-#'   universal quantity, after outlier trimming. Must contain exactly `ppm` and
-#'   `mz_diff` (relative and absolute mass tolerance), `noise`, `width_seconds`
-#'   and `width_scans` (peak width), `sn`, `height`, `mass_shift`, and
-#'   `rt_shift`. A quantity with no measurements (for example the shifts when
-#'   only one file was analysed) is an empty vector.
+#'   universal quantity. Must contain exactly `ppm` and `mz_diff` (relative mass
+#'   tolerance in ppm and absolute in Da), `noise`, `width_seconds` and
+#'   `width_scans` (peak width in seconds and in scans), `sn`, `height`,
+#'   `mass_shift` (Da), and `rt_shift` (seconds). A quantity with no
+#'   measurements, such as the shifts when only one file was analysed, is an
+#'   empty vector.
 #' @param files Character vector of the files the parameters were measured from.
 #' @param config The [pm_config] used for the analysis.
 #'
 #' @return A `universal_parameters` object. Its `summary` property is a data
-#'   frame with columns `quantity`, `n`, `min`, `max`, `mean`, and `median`
+#'   frame with columns `quantity`, `n`, `min`, `max`, `mean`, and `median`.
 #'
 #' @include pm_config.R
 #'

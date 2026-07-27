@@ -63,13 +63,14 @@ xcms_values <- function(params, sample_groups = NULL) {
 #' maximum retention-time shift, unless `config@legacy` is `TRUE`, which
 #' reproduces the original's fixed `bw = 5`.
 #'
-#' With fewer than two files the instrument shifts cannot be measured, so `bw`
-#' and `binSize` fall back to `5` and `0.012` and a warning is issued.
+#' When the instrument shifts were never measured, `bw` and `binSize` fall back
+#' to `5` and `0.012` and a warning is issued. That happens with a single file,
+#' and also when several files share no zone that matched across all of them.
 #'
 #' @param params A [universal_parameters] object from [paramounter()].
 #' @param sample_groups Optional vector assigning each file to a sample group,
-#'   one entry per file, used for the `PeakDensityParam`. Defaults to a single
-#'   group; set it to your experimental design.
+#'   one entry per file, passed to the `PeakDensityParam`. Defaults to putting
+#'   every file in one group.
 #'
 #' @return A named list with `chrom_peaks` (a `CentWaveParam`), `group` (a
 #'   `PeakDensityParam`), and `retention` (an `ObiwarpParam`), ready for

@@ -38,10 +38,10 @@ this assigns each peak to its bin once, so the cost grows with the number of
 peaks rather than with bins times scans. Reconstruct a single bin's per-scan
 traces with \code{\link[=assemble_bin_traces]{assemble_bin_traces()}}.
 
-The bin edges are \code{seq(mz_range[1], mz_range[2], by = bin_width)}. A peak
-lying on or above the final edge falls outside every bin and is dropped; with
-the default range this affects only the single highest peak, as in the
-original.
+The bin edges are \code{seq(mz_range[1], mz_range[2], by = bin_width)}. A peak on
+or above the final edge falls outside every bin and is dropped. With the
+default range the final edge is the last whole \code{bin_width} step at or below
+the highest peak, so any peaks past it are lost, as in the original.
 }
 \examples{
 mz <- list(c(100.01, 100.06, 100.12), c(100.02, 100.07), numeric(0))

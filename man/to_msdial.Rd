@@ -13,17 +13,19 @@ to_msdial(params, file = NULL)
 }
 \value{
 A data frame with columns \code{parameter} and \code{value}, the MS-DIAL
-settings to enter (returned invisibly is not used; the value is returned so
-it can be inspected or written).
+settings to enter.
 }
 \description{
 Converts a \link{universal_parameters} object into the MS-DIAL parameter values,
-following the Paramounter method: the MS1 tolerance and mass slice width are
-the rounded-up maximum absolute mass tolerance (Da); the minimum peak height
-is the rounded-down minimum height; the minimum peak width is the rounded-down
-minimum width in scans; and, when instrument shifts are available (two or more
-files), the alignment MS1 and retention-time tolerances are the maximum mass
-shift and the maximum retention-time shift in minutes.
+following the Paramounter method. The MS1 tolerance and mass slice width are
+the maximum absolute mass tolerance, rounded up to the nearest 0.01 Da. The
+minimum peak height is the rounded-down minimum height, and the minimum peak
+width is the rounded-down minimum width in scans.
+}
+\details{
+When the instrument shifts are available, which needs two or more files, the
+alignment MS1 tolerance is the maximum mass shift in Da and the alignment
+retention-time tolerance is the maximum retention-time shift in minutes.
 }
 \examples{
 \dontrun{

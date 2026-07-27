@@ -12,11 +12,12 @@ universal_parameters(
 }
 \arguments{
 \item{distributions}{Named list holding one finite numeric vector per
-universal quantity, after outlier trimming. Must contain exactly \code{ppm} and
-\code{mz_diff} (relative and absolute mass tolerance), \code{noise}, \code{width_seconds}
-and \code{width_scans} (peak width), \code{sn}, \code{height}, \code{mass_shift}, and
-\code{rt_shift}. A quantity with no measurements (for example the shifts when
-only one file was analysed) is an empty vector.}
+universal quantity. Must contain exactly \code{ppm} and \code{mz_diff} (relative mass
+tolerance in ppm and absolute in Da), \code{noise}, \code{width_seconds} and
+\code{width_scans} (peak width in seconds and in scans), \code{sn}, \code{height},
+\code{mass_shift} (Da), and \code{rt_shift} (seconds). A quantity with no
+measurements, such as the shifts when only one file was analysed, is an
+empty vector.}
 
 \item{files}{Character vector of the files the parameters were measured from.}
 
@@ -24,15 +25,15 @@ only one file was analysed) is an empty vector.}
 }
 \value{
 A \code{universal_parameters} object. Its \code{summary} property is a data
-frame with columns \code{quantity}, \code{n}, \code{min}, \code{max}, \code{mean}, and \code{median}
+frame with columns \code{quantity}, \code{n}, \code{min}, \code{max}, \code{mean}, and \code{median}.
 }
 \description{
 The result of a Paramounter analysis: the software-agnostic parameter
 distributions measured across the input files, together with the settings and
 the files they came from. Software-specific parameter sets (for xcms,
 MS-DIAL, and MZmine) are produced from this object by the translation
-functions, and the diagnostic report is drawn from its distributions.
-Normally created by the analysis rather than by hand.
+functions, and \code{plot()} draws its distributions. Normally created by the
+analysis rather than by hand.
 }
 \details{
 The \code{summary} property is computed on access from \code{distributions}, so it

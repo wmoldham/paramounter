@@ -13,10 +13,10 @@ match_zoi_across_files(
 }
 \arguments{
 \item{zoi_list}{List of at least two data frames, one per file, each with
-numeric, finite \code{mz} and \code{rt} columns giving the m/z and retention time of
-that file's clean zones of interest (for example the rows of \code{\link[=find_zoi]{find_zoi()}}
-flagged by \code{\link[=flag_isolated_zoi]{flag_isolated_zoi()}}). The first element is the anchor.
-Elements may be named to label the output columns.}
+numeric, finite \code{mz} and \code{rt} columns giving the reference m/z and apex
+retention time of that file's clean zones of interest, meaning the ones
+\code{\link[=flag_isolated_zoi]{flag_isolated_zoi()}} marked. The first element is the anchor. Elements may
+be named to label the output columns.}
 
 \item{mz_tol}{Single positive m/z half-window, in the same units as \code{mz}
 (default \code{0.015}). A candidate matches when its m/z is within \code{mz_tol} of
@@ -55,8 +55,8 @@ every file.
 \details{
 The window is always centred on the anchor file, never on a running consensus
 or the previous file, so all files are compared against the same reference.
-Row order within each file matters only when \code{legacy_first_match} is \code{TRUE}
-(see below); supply the zones in the order they were detected.
+Supply the zones in the order they were detected. Row order changes the result
+only when \code{legacy_first_match} is \code{TRUE}.
 
 A feature that is absent from any one file is dropped, so pass only files that
 actually contain clean zones; an empty file causes every feature to be

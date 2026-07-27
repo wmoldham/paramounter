@@ -54,16 +54,19 @@ compute_ppm_cutoff <- function(ppm, trim, quantile) {
 #' Aggregate per-file measurements into universal parameters
 #'
 #' Combines the per-file outputs of the measurement step into the final
-#' [universal_parameters]. It pools the per-bin noise and stacks the per-zone
-#' tables across files; determines the relative-tolerance cutoff (the manual
-#' `config@ppm_cutoff`, or automatically from the pooled ppm at
-#' `config@ppm_quantile`); drops zones failing that cutoff; trims each quantity's
-#' distribution (dropping the tail opposite its summary statistic, per
-#' `config@trim`); and, when more than one file is given, derives each file's
-#' clean zones (surviving and isolated) and runs [match_zoi_across_files()] then
-#' [estimate_instrument_shift()] to obtain the mass- and retention-time-shift
-#' distributions. Called by the orchestrator on the results of the per-file
-#' measurement.
+#' [universal_parameters].
+#'
+#' It pools the per-bin noise and stacks the per-zone tables across files. It
+#' then determines the relative-tolerance cutoff, either from `config@ppm_cutoff`
+#' or from the pooled ppm at `config@ppm_quantile`, and drops the zones that fail
+#' it. Every distribution except `ppm` is then trimmed, dropping the tail
+#' opposite the statistic that quantity is summarised by. `ppm` is left untrimmed
+#' because the cutoff has already bounded it.
+#'
+#' Given two or more files it also derives each file's clean zones, meaning those
+#' that survived the cutoff and were flagged isolated, and runs
+#' [match_zoi_across_files()] then [estimate_instrument_shift()] to obtain the
+#' mass- and retention-time-shift distributions.
 #'
 #' @param per_file List with one element per file, each the list returned by the
 #'   per-file measurement step (with numeric `noise` and a data frame `zoi`).

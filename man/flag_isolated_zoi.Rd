@@ -7,9 +7,10 @@
 flag_isolated_zoi(apex_rt, min_gap = 300, legacy_isolation = FALSE)
 }
 \arguments{
-\item{apex_rt}{Numeric vector of apex retention times for the zones of
-interest in one mass bin, in non-decreasing order (as returned by
-\code{\link[=find_zoi]{find_zoi()}}, whose zones are ordered by scan). Must be finite.}
+\item{apex_rt}{Numeric vector of apex retention times for the zones in one
+mass bin, in non-decreasing order. Must be finite. \code{\link[=find_zoi]{find_zoi()}} returns scan
+indices rather than times, so index your retention times by its \code{apex}
+column; its zones are already ordered by scan.}
 
 \item{min_gap}{Single non-negative number giving the minimum separation, in
 the same units as \code{apex_rt}, for a zone to count as isolated. Defaults to
@@ -42,9 +43,8 @@ A zone qualifies when the gap to its neighbour is strictly greater than
 
 The neighbour set is every zone detected in the bin, including zones that
 later fail the mass-count or ppm filters in \code{\link[=zoi_features]{zoi_features()}}: a nearby peak
-interferes with matching whether or not it yields a usable measurement. Apply
-this function to all apex retention times from \code{\link[=find_zoi]{find_zoi()}} and combine the
-result with the measurement filters afterwards.
+interferes with matching whether or not it yields a usable measurement. Pass
+every zone detected in the bin, then apply the measurement filters afterwards.
 }
 \examples{
 # the middle zone sits 10 s after its neighbour but 690 s before the next

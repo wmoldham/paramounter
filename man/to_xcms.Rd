@@ -10,8 +10,8 @@ to_xcms(params, sample_groups = NULL)
 \item{params}{A \link{universal_parameters} object from \code{\link[=paramounter]{paramounter()}}.}
 
 \item{sample_groups}{Optional vector assigning each file to a sample group,
-one entry per file, used for the \code{PeakDensityParam}. Defaults to a single
-group; set it to your experimental design.}
+one entry per file, passed to the \code{PeakDensityParam}. Defaults to putting
+every file in one group.}
 }
 \value{
 A named list with \code{chrom_peaks} (a \code{CentWaveParam}), \code{group} (a
@@ -33,8 +33,9 @@ maximum retention-time shift, unless \code{config@legacy} is \code{TRUE}, which
 reproduces the original's fixed \code{bw = 5}.
 }
 \details{
-With fewer than two files the instrument shifts cannot be measured, so \code{bw}
-and \code{binSize} fall back to \code{5} and \code{0.012} and a warning is issued.
+When the instrument shifts were never measured, \code{bw} and \code{binSize} fall back
+to \code{5} and \code{0.012} and a warning is issued. That happens with a single file,
+and also when several files share no zone that matched across all of them.
 }
 \examples{
 \dontrun{
