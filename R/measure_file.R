@@ -1,5 +1,45 @@
 # measure_file.R
 
+# The columns of the per-zone result, as length-one prototypes. Declared once so
+# the empty case and the assembled case cannot drift apart, and reused as the
+# `vapply` FUN.VALUE that type-checks every column as it is built.
+ZOI_COLUMNS <- list(
+  ppm = NA_real_,
+  mz_diff = NA_real_,
+  width_seconds = NA_real_,
+  width_scans = NA_integer_,
+  sn = NA_real_,
+  height = NA_real_,
+  reference_mz = NA_real_,
+  apex_rt = NA_real_,
+  isolated = NA
+)
+
+#' Assemble the collected per-zone measurements into a data frame
+#'
+#' Zones are collected as bare lists and turned into columns once, at the end.
+#' Building a one-row `data.frame()` per zone instead cost about a fifth of the
+#' per-file runtime: there are tens of thousands of zones, and each call pays
+#' for deparsing its column names.
+#'
+#' @param rows List of per-zone named lists, each holding one value per column
+#'   of `ZOI_COLUMNS`.
+#'
+#' @return A data frame with one row per zone and the columns of `ZOI_COLUMNS`,
+#'   with zero rows when `rows` is empty.
+#' @noRd
+assemble_zoi <- function(rows) {
+  columns <- lapply(names(ZOI_COLUMNS), function(column) {
+    if (length(rows) == 0L) {
+      ZOI_COLUMNS[[column]][0]
+    } else {
+      vapply(rows, `[[`, ZOI_COLUMNS[[column]], column)
+    }
+  })
+  names(columns) <- names(ZOI_COLUMNS)
+  data.frame(columns, stringsAsFactors = FALSE)
+}
+
 #' Measure universal-parameter contributions from one file
 #'
 #' Runs the full per-file measurement chain over one file's extracted per-scan
@@ -49,8 +89,14 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
 
   binned <- bin_peaks(mz, intensity, bin_width = config@bin_width)
   n_scans <- binned$n_scans
-  noise_values <- numeric(0)
-  rows <- list()
+  # both accumulators are filled by index rather than grown with c()/append:
+  # there is one noise value per bin and one row per zone, tens of thousands of
+  # each, and repeated reallocation was a sixth of the per-file runtime
+  n_bins <- length(binned$bins)
+  noise_values <- numeric(n_bins)
+  n_noise <- 0L
+  rows <- vector("list", n_bins)
+  n_rows <- 0L
 
   for (bin in binned$bins) {
     traces <- assemble_bin_traces(bin, n_scans)
@@ -59,9 +105,11 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
     }
     smoothed <- smooth_intensity(traces$eic, config@smooth_half_window)
     noise <- estimate_noise(smoothed, config@noise_block_size, config@noise_sd_factor)
-    noise_values <- c(noise_values, noise$cutoff)
-    zois <- find_zoi(smoothed, noise$cutoff)
-    if (nrow(zois) == 0L) {
+    n_noise <- n_noise + 1L
+    noise_values[n_noise] <- noise$cutoff
+    zois <- zoi_indices(smoothed, noise$cutoff)
+    n_zoi <- length(zois$apex)
+    if (n_zoi == 0L) {
       next
     }
     isolated <- flag_isolated_zoi(
@@ -69,7 +117,7 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
       min_gap = config@isolation_gap,
       legacy_isolation = config@legacy
     )
-    for (z in seq_len(nrow(zois))) {
+    for (z in seq_len(n_zoi)) {
       apex <- zois$apex[z]
       apex_peaks <- traces$int_list[[apex]]
       if (length(apex_peaks) == 0L) {
@@ -104,7 +152,11 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
       if (is.null(features)) {
         next
       }
-      rows[[length(rows) + 1L]] <- data.frame(
+      n_rows <- n_rows + 1L
+      if (n_rows > length(rows)) {
+        length(rows) <- 2L * length(rows)
+      }
+      rows[[n_rows]] <- list(
         ppm = features$ppm,
         mz_diff = features$mz_diff,
         width_seconds = features$width_seconds,
@@ -118,20 +170,8 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
     }
   }
 
-  zoi <- if (length(rows)) {
-    do.call(rbind, rows)
-  } else {
-    data.frame(
-      ppm = numeric(0),
-      mz_diff = numeric(0),
-      width_seconds = numeric(0),
-      width_scans = integer(0),
-      sn = numeric(0),
-      height = numeric(0),
-      reference_mz = numeric(0),
-      apex_rt = numeric(0),
-      isolated = logical(0)
-    )
-  }
-  list(noise = noise_values, zoi = zoi)
+  list(
+    noise = noise_values[seq_len(n_noise)],
+    zoi = assemble_zoi(rows[seq_len(n_rows)])
+  )
 }

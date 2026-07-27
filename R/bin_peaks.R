@@ -101,18 +101,32 @@ bin_peaks <- function(mz_list, int_list, bin_width = 0.05, mz_range = NULL) {
   intensity <- intensity[keep]
   bin <- bin[keep]
 
-  by_bin <- split(seq_along(bin), bin)
-  bins <- lapply(names(by_bin), function(bin_name) {
-    rows <- by_bin[[bin_name]]
-    b <- as.integer(bin_name)
-    list(
-      bin = b,
-      mz_low = edges[b],
-      mz_high = edges[b + 1L],
-      scan = scans[rows],
-      mz = mz[rows],
-      intensity = intensity[rows]
-    )
-  })
+  # Group the rows by bin without going through a factor. split() would coerce
+  # every one of the hundreds of thousands of bin indices to character and then
+  # parse each bin's name back to an integer, which made this the single most
+  # expensive step of a file. order() on an integer vector is a stable radix
+  # sort, so rows keep their original order within each bin — that order is
+  # scan-ascending, which assemble_bin_traces and the mass walk both rely on.
+  if (length(bin) == 0L) {
+    bins <- list()
+  } else {
+    ord <- order(bin)
+    sorted <- bin[ord]
+    first <- c(1L, which(diff(sorted) != 0L) + 1L)
+    last <- c(first[-1L] - 1L, length(sorted))
+    ids <- sorted[first]
+    bins <- lapply(seq_along(ids), function(k) {
+      rows <- ord[first[k]:last[k]]
+      b <- ids[k]
+      list(
+        bin = b,
+        mz_low = edges[b],
+        mz_high = edges[b + 1L],
+        scan = scans[rows],
+        mz = mz[rows],
+        intensity = intensity[rows]
+      )
+    })
+  }
   list(n_scans = n_scans, bins = bins)
 }

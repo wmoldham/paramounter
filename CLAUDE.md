@@ -48,7 +48,12 @@ values for exactly this dataset (its "Urine in Bruker Q-TOF RP(+) DDA mode" row)
 `paramounter(files, pm_config(ppm_cutoff = 30))` then `to_xcms()` reproduces **11 of 12**
 published values exactly: `peakwidth 0, 28.5`, `snthresh 3`, `prefilter 3, 298`,
 `noise 298`, `bw 5`, `mzdiff -0.01`, `integrate 1`, `minfrac 0.5`, `minsamp 1`,
-`max 100`, and `ppm 30`. Runtime is ~19 s per file, ~90 s for all five.
+`max 100`, and `ppm 30`. Note this now needs `legacy = TRUE` passed explicitly, since
+the default flipped to the corrected behaviour.
+
+Runtime is ~4.2 s per file, ~21 s for all five, measured end to end through
+`paramounter()`. (It was ~8.9 s per file before the measurement loop was optimised; an
+earlier note here claiming ~19 s per file was stale.)
 
 The one gap is grouping `mzwid`/`binSize`: 0.00708 vs the published 0.006.
 

@@ -20,6 +20,17 @@ First working version. The package is not yet released; it installs from GitHub 
   Pass `pm_config(legacy = TRUE)` for the previous behaviour. Reproducing published
   values needs it, and the README's reproduction section sets it explicitly.
 
+## Performance
+
+* The measurement loop is about twice as fast: the five shipped demo files went from
+  44 s to 21 s end to end, roughly 8.9 s to 4.2 s per file. The measured values are
+  bit-for-bit identical, not merely close.
+
+  The gains came from grouping peaks by bin without a factor round-trip, filling the
+  per-zone results by index instead of growing them with `c()` and `rbind()`, checking
+  for non-finite values with a single `range()` pass, and skipping the per-bin
+  `data.frame()` that the loop immediately took apart again.
+
 ## Measuring parameters
 
 * `paramounter()` measures universal LC-MS parameters directly from centroided data

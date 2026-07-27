@@ -32,14 +32,31 @@
 find_zoi <- function(intensity, cutoff) {
   check_numeric_vector(intensity, "intensity")
   check_nonneg_number(cutoff, "cutoff")
+  zoi <- zoi_indices(intensity, cutoff)
+  data.frame(
+    start = zoi$start,
+    end = zoi$end,
+    apex = zoi$apex
+  )
+}
 
+#' Locate zones of interest as bare index vectors
+#'
+#' The unvalidated core of [find_zoi()]. The measurement loop calls this once
+#' per mass bin, tens of thousands of times per file, and only ever reads the
+#' index vectors — so it skips both the argument checks (the caller has already
+#' validated the trace) and the `data.frame()` wrapper, which together were a
+#' fifth of the per-file runtime. [find_zoi()] itself is unchanged.
+#'
+#' @param intensity Numeric vector of per-scan intensities.
+#' @param cutoff Single non-negative noise cutoff.
+#'
+#' @return A list of three integer vectors, `start`, `end`, and `apex`.
+#' @noRd
+zoi_indices <- function(intensity, cutoff) {
   above <- which(intensity > cutoff)
   if (length(above) == 0L) {
-    return(data.frame(
-      start = integer(0),
-      end = integer(0),
-      apex = integer(0)
-    ))
+    return(list(start = integer(0), end = integer(0), apex = integer(0)))
   }
 
   gaps <- which(diff(above) != 1L)
@@ -53,9 +70,5 @@ find_zoi <- function(intensity, cutoff) {
     integer(1)
   )
 
-  data.frame(
-    start = start,
-    end = end,
-    apex = apex
-  )
+  list(start = start, end = end, apex = apex)
 }
