@@ -55,7 +55,11 @@ universal_parameters <- new_class(
   properties = list(
     distributions = new_property(
       class_any,
-      default = empty_distributions(),
+      # quoted for the same reason as `config` below, and additionally because
+      # an evaluated list here is a *value* while the generated \usage holds a
+      # `list(...)` *call*: they deparse identically but do not compare equal,
+      # which R CMD check reports as a codoc mismatch it cannot render.
+      default = quote(empty_distributions()),
       validator = function(value) {
         if (!is.list(value) || is.null(names(value))) {
           return("`distributions` must be a named list.")
@@ -82,7 +86,11 @@ universal_parameters <- new_class(
         if (!is.character(value)) "`files` must be a character vector." else NULL
       }
     ),
-    config = new_property(pm_config, default = pm_config()),
+    # quote() so the default is evaluated when an object is built rather than
+    # when the class is defined. Constructing it here instead left roxygen
+    # deparsing an already-built S7 object into `config = <object>`, which is
+    # not valid R and so produced a malformed \usage section.
+    config = new_property(pm_config, default = quote(pm_config())),
     summary = new_property(
       class_any,
       getter = function(self) {
@@ -129,9 +137,18 @@ method(print, universal_parameters) <- function(x, ...) {
 #' and [to_mzmine()].
 #'
 #' @param x A [universal_parameters] object.
+#' @param y Ignored, and present only because the `plot` generic it specialises
+#'   takes it. The panel is drawn entirely from `x`.
 #' @param ... Ignored.
 #'
 #' @return `x`, invisibly.
+#'
+# No \usage block. roxygen2 renders an S7 method on an S4 generic as a bare
+# `plot(x, y, ...)`, which R CMD check reads as documenting `plot` itself and
+# wants an \alias{plot} for; the \S4method{} form it would accept cannot express
+# the `paramounter::universal_parameters` signature, because the `::` breaks its
+# \usage parser. The call is just `plot(params)`, shown in the examples.
+#' @usage NULL
 #'
 #' @examples
 #' \dontrun{
@@ -140,7 +157,7 @@ method(print, universal_parameters) <- function(x, ...) {
 #' }
 #'
 #' @export
-method(plot, universal_parameters) <- function(x, ...) {
+method(plot, universal_parameters) <- function(x, y, ...) {
   d <- x@distributions
   meta <- list(
     ppm = list(label = "mass tolerance (ppm)", drive = "max"),

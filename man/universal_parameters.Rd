@@ -5,11 +5,9 @@
 \title{Universal LC-MS parameters measured from the data}
 \usage{
 universal_parameters(
-  distributions = list(ppm = numeric(0), mz_diff = numeric(0), noise = numeric(0),
-    width_seconds = numeric(0), width_scans = numeric(0), sn = numeric(0), height =
-    numeric(0), mass_shift = numeric(0), rt_shift = numeric(0)),
+  distributions = empty_distributions(),
   files = character(0),
-  config = <object>
+  config = pm_config()
 )
 }
 \arguments{

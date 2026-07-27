@@ -20,6 +20,13 @@ First working version. The package is not yet released; it installs from GitHub 
   Pass `pm_config(legacy = TRUE)` for the previous behaviour. Reproducing published
   values needs it, and the README's reproduction section sets it explicitly.
 
+## Packaging
+
+* `R CMD check` is clean: 0 errors, 0 warnings, 0 notes. The fixes were all to
+  documentation and packaging metadata, not to behaviour — the class-valued property
+  defaults of `universal_parameters` are now deferred with `quote()`, which is what
+  produced a valid `\usage` section for it.
+
 ## Performance
 
 * The measurement loop is about twice as fast: the five shipped demo files went from

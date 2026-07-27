@@ -253,13 +253,34 @@ Two asymmetries in that table worth knowing:
   `*_values`/`*_table` helpers, `point_estimates`) is `@noRd`; the building-block step
   functions and user-facing functions are `@export`.
 
-## S7 gotcha (already handled — don't regress)
+## S7 gotchas (already handled — don't regress)
 
-Files with top-level **construction** (not just definition) create load-order
-dependencies. `universal_parameters` has
-`config = new_property(pm_config, default = pm_config())`, which constructs at load time
-and invokes validators. So `pm_config.R` carries `@include validate.R` and
-`universal_parameters.R` carries `@include pm_config.R` to force the `Collate` order.
+**Load order.** Referring to another S7 class at the top level creates a load-order
+dependency. `universal_parameters` declares `new_property(pm_config, ...)`, which
+evaluates the `pm_config` class object as its file is sourced. So `pm_config.R` carries
+`@include validate.R` and `universal_parameters.R` carries `@include pm_config.R` to
+force the `Collate` order. Default function *arguments* like `config = pm_config()` are
+lazy and therefore safe — only top-level evaluation needs `@include`.
+
+**Quote class-valued property defaults.** Write
+`new_property(pm_config, default = quote(pm_config()))`, not `default = pm_config()`.
+An unquoted default is built once when the class is defined and stored as a *value*,
+which breaks documentation two ways: roxygen deparses the stored S7 object into
+`config = <object>`, which is not valid R and yields a malformed `\usage`; and an
+evaluated `list(...)` default never compares equal to the `list(...)` *call* parsed back
+out of the `\usage`, which `R CMD check` reports as a codoc mismatch whose two sides
+print identically. `quote()` defers construction to object creation and fixes both.
+S7 evaluates the quoted expression in the class's own environment, so an internal helper
+such as `empty_distributions()` is safe to call there.
+
+**S7 methods on S4 generics carry no `\usage`.** `plot` is an S4 generic here (via
+BiocGenerics), and roxygen renders the method as a bare `plot(x, y, ...)`, which
+`R CMD check` reads as documenting `plot` itself and demands an `\alias{plot}` for. The
+`\S4method{}` form it would accept cannot express the `paramounter::universal_parameters`
+signature — the `::` breaks its `\usage` parser. So that block carries `@usage NULL`.
+The method must also take `y`, because the generic it specialises does.
+
+A clean run is **`0 errors, 0 warnings, 0 notes`**; keep it that way.
 
 Default function *arguments* like `config = pm_config()` are lazy and therefore safe —
 only top-level construction needs `@include`.

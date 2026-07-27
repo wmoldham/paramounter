@@ -3,12 +3,11 @@
 \name{plot,paramounter::universal_parameters-method}
 \alias{plot,paramounter::universal_parameters-method}
 \title{Plot the universal-parameter distributions}
-\usage{
-## S7 method for class <paramounter::universal_parameters>
-plot(x, ...)
-}
 \arguments{
 \item{x}{A \link{universal_parameters} object.}
+
+\item{y}{Ignored, and present only because the \code{plot} generic it specialises
+takes it. The panel is drawn entirely from \code{x}.}
 
 \item{...}{Ignored.}
 }
