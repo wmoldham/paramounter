@@ -95,8 +95,10 @@ devtools::check()                                  # full R CMD check
 `man/` and `NAMESPACE` are roxygen2 output — never hand-edit them; edit the roxygen
 block above the function and re-run `document()`.
 
-`faahKO` is listed in Suggests but is not installed locally; `msdata` is. Suggested
-packages are used behind `skip_if_not_installed()` guards. Bioconductor dependencies
+Neither `faahKO` nor `msdata` (both Suggests) is installed locally, so a clean run
+reports one skip at `test-read_ms_data.R:22`. Suggested packages are used behind
+`skip_if_not_installed()` guards. A green baseline is currently
+**13,335 passing, 0 failures, 1 skip**. Bioconductor dependencies
 (S7, Spectra, xcms) install via BiocManager; when bioconductor.org returns 504s, the
 reliable mirror is `https://ftp.gwdg.de/pub/misc/bioconductor`.
 
@@ -203,6 +205,15 @@ these paths, keep the legacy branch intact — it is what the verbatim-port comp
 are checked against. New intentional divergences belong behind this flag, not in the
 shared path.
 
+Two asymmetries in that table worth knowing:
+
+- The first three effects have their own **exported sub-parameter**, so each can be
+  toggled independently of `pm_config`. The fourth does not — `xcms_values()` reads
+  `params@config@legacy` directly, so `bw` can only be switched through the config.
+- Because the sub-parameters carry their own defaults, they must be kept **in step with**
+  `pm_config@legacy`'s default. A mismatch would mean `zoi_features()` called directly
+  behaves differently from the same function reached through `paramounter()`.
+
 ### Other decisions
 
 - **ppm cutoff**: `ppm_cutoff = NULL` means auto — computed from the pooled ppm
@@ -250,15 +261,23 @@ only top-level construction needs `@include`.
 
 ## Roadmap
 
-The measurement and translation layers are complete and verified. What remains, in
-priority order:
+The measurement and translation layers are complete and verified, `DESCRIPTION` and the
+README are written, and `README.Rmd` knits the demo-data workflow end to end. What
+remains:
 
-1. **README + vignette** walking through the demo-data workflow.
-2. **Importable-file templates** for a named MS-DIAL / MZmine version. `to_msdial()` and
-   `to_mzmine()` currently return parameter-value tables (plus optional CSV), not
-   drop-in configs; producing those needs the full format template for a specific
-   version.
-3. **pkgdown site + CI** (GitHub Actions), if wanted.
+1. **pkgdown site + CI** (GitHub Actions), if wanted. Note the constraint before
+   starting: `README.Rmd` has two live chunks that run the real pipeline, so any job
+   that knits it pulls the 61 MB committed data and the full Bioconductor stack.
 
-`DESCRIPTION`'s `Title` and `Description`, and `README.Rmd`, are still usethis
-placeholders.
+**Decided against — do not revisit without new information:**
+
+- **Importable-file templates** for MS-DIAL / MZmine. `to_msdial()` and `to_mzmine()`
+  return parameter-value tables (plus optional CSV) and that is the intended output;
+  users enter the values themselves. Producing drop-in configs would need the full
+  format template for a specific named version of each tool, which is an acquisition
+  problem rather than a coding one, and the payoff does not justify pinning the package
+  to particular tool versions.
+- **A vignette.** The README already walks the demo-data workflow step by step with live
+  output; a vignette would duplicate it and double the maintenance surface. If long-form
+  docs are wanted, write an article on something the README does *not* cover — the
+  `legacy` flag's effects, or the `mzwid` diagnosis as a methods note.
