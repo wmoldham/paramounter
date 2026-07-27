@@ -18,7 +18,7 @@ pm_config(
   match_mz_tol = 0.015,
   match_rt_tol = 30,
   trim = 0.97,
-  legacy = TRUE
+  legacy = FALSE
 )
 }
 \arguments{
@@ -56,24 +56,27 @@ for cross-file matching in \code{\link[=match_zoi_across_files]{match_zoi_across
 \item{trim}{Single number in \verb{(0, 1]} giving the fraction of each parameter
 distribution kept when trimming outliers (default \code{0.97}).}
 
-\item{legacy}{Single \code{TRUE} or \code{FALSE}. When \code{TRUE} (the default) the whole
-pipeline reproduces the original Paramounter behaviour, driving the
-scan-count, isolation, and first-match choices together; set \code{FALSE} for the
-corrected behaviour throughout. Provided to allow comparison against the
-published values.}
+\item{legacy}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default) the
+pipeline uses the corrected behaviour throughout. Set \code{TRUE} to reproduce
+the original Paramounter end to end, including its known quirks: it drives
+the scan-count, isolation, first-match, and grouping-bandwidth choices
+together. Use it to compare against the published values, not for new
+analyses — see the README for what each choice changes.}
 }
 \value{
 A \code{pm_config} object.
 }
 \description{
 Bundles every setting that controls parameter estimation into one validated
-object, which the analysis threads through to each step. All arguments have
-defaults matching the published Paramounter method, so \code{pm_config()} returns
-the standard configuration.
+object, which the analysis threads through to each step. The numeric settings
+default to the published Paramounter values, so \code{pm_config()} returns the
+standard configuration. The exception is \code{legacy}, which defaults to \code{FALSE}:
+the package applies its corrections to the original method unless you ask it
+not to.
 }
 \examples{
 pm_config()
-pm_config(bin_width = 0.02, smooth_half_window = 4L, legacy = FALSE)
+pm_config(bin_width = 0.02, smooth_half_window = 4L, legacy = TRUE)
 pm_config(ppm_cutoff = 20) # fixed ppm cutoff instead of automatic
 
 }

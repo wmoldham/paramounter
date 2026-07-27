@@ -15,13 +15,13 @@ test_that("defaults match the published method", {
   expect_equal(d@match_mz_tol, 0.015)
   expect_equal(d@match_rt_tol, 30)
   expect_equal(d@trim, 0.97)
-  expect_true(d@legacy)
+  expect_false(d@legacy)
 })
 
 test_that("custom values are stored", {
-  c1 <- pm_config(bin_width = 0.02, legacy = FALSE, ppm_cutoff = 20, smooth_half_window = 4L)
+  c1 <- pm_config(bin_width = 0.02, legacy = TRUE, ppm_cutoff = 20, smooth_half_window = 4L)
   expect_equal(c1@bin_width, 0.02)
-  expect_false(c1@legacy)
+  expect_true(c1@legacy)
   expect_equal(c1@ppm_cutoff, 20)
   expect_equal(c1@smooth_half_window, 4L)
 })

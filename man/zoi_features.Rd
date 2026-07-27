@@ -19,7 +19,7 @@ zoi_features(
   ppm_cutoff = Inf,
   min_masses = 2L,
   max_masses = 199L,
-  legacy_scan_count = TRUE
+  legacy_scan_count = FALSE
 )
 }
 \arguments{
@@ -57,13 +57,13 @@ zones at or above it are discarded. Defaults to \code{Inf} (no filtering).}
 \item{min_masses, max_masses}{Single positive integers bounding the number of
 collected masses for a zone to be measured (defaults \code{2} and \code{199}).}
 
-\item{legacy_scan_count}{Single \code{TRUE} or \code{FALSE}. When \code{TRUE} (the default)
-\code{width_scans} reproduces the original Paramounter implementation, which
-counts \code{right_edge - left_edge + 2} and so overstates the inclusive scan
-span by one. When \code{FALSE} the corrected span \code{right_edge - left_edge + 1}
-is returned. This toggle exists only to allow comparison against the
-published values and is expected to be removed once reproduction is
-confirmed.}
+\item{legacy_scan_count}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default)
+\code{width_scans} is the corrected inclusive span \code{right_edge - left_edge + 1}.
+When \code{TRUE} it reproduces the original Paramounter implementation, which
+counts \code{right_edge - left_edge + 2} and so overstates the span by one; use
+that only to compare against the published values. Keep this in step with
+\link{pm_config}'s \code{legacy}, which is what sets it when the pipeline is run
+through \code{\link[=paramounter]{paramounter()}}.}
 }
 \value{
 A named list with elements \code{reference_mz}, \code{apex_rt}, \code{ppm},

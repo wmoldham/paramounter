@@ -95,6 +95,21 @@ devtools::check()                                  # full R CMD check
 `man/` and `NAMESPACE` are roxygen2 output — never hand-edit them; edit the roxygen
 block above the function and re-run `document()`.
 
+`README.md` is knitted from `README.Rmd` — never hand-edit it either. Regenerating it
+needs pandoc, which is not installed standalone on this machine; point R at the copy
+bundled with quarto first, or `build_readme()` fails with "pandoc version 1.12.3 or
+higher is required":
+
+```sh
+export RSTUDIO_PANDOC=/Applications/quarto/bin/tools/aarch64
+Rscript -e 'devtools::build_readme()'
+```
+
+`knitr::knit()` alone runs without pandoc but is **not** a substitute: pandoc rewraps
+prose, pads table cells, and emits ` ``` r ` fences, so a knitr-only pass rewrites most
+of the file. The README's two live chunks run the real pipeline, so a knit takes a
+couple of minutes.
+
 Neither `faahKO` nor `msdata` (both Suggests) is installed locally, so a clean run
 reports one skip at `test-read_ms_data.R:22`. Suggested packages are used behind
 `skip_if_not_installed()` guards. A green baseline is currently
@@ -189,9 +204,9 @@ Functions validate their arguments up front and error rather than silently coerc
 
 ### The `legacy` flag
 
-There is **one master flag**, `pm_config@legacy` (default `TRUE`), and it reproduces the
-original end-to-end rather than switching a single behaviour. It drives four things,
-each reached through its own named parameter at the call site:
+There is **one master flag**, `pm_config@legacy` (default `FALSE`), and setting it `TRUE`
+reproduces the original end-to-end rather than switching a single behaviour. It drives
+four things, each reached through its own named parameter at the call site:
 
 | Effect | Where | `legacy = TRUE` | `legacy = FALSE` |
 |---|---|---|---|

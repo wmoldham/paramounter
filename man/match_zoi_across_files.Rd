@@ -8,7 +8,7 @@ match_zoi_across_files(
   zoi_list,
   mz_tol = 0.015,
   rt_tol = 30,
-  legacy_first_match = TRUE
+  legacy_first_match = FALSE
 )
 }
 \arguments{
@@ -25,14 +25,16 @@ the anchor's, inclusive.}
 \item{rt_tol}{Single positive retention-time half-window, in the same units
 as \code{rt} (default \code{30}). Applied inclusively, like \code{mz_tol}.}
 
-\item{legacy_first_match}{Single \code{TRUE} or \code{FALSE}. When \code{TRUE} (the default)
+\item{legacy_first_match}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the
+default) the \emph{nearest} candidate is taken, minimising the window-normalised
+distance \code{sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)}, which is the
+principled choice when a window contains several candidates. When \code{TRUE}
 the original Paramounter behaviour is reproduced: the \emph{first} candidate
-within the window (by row order) is taken. When \code{FALSE} the \emph{nearest}
-candidate is taken, minimising the window-normalised distance
-\code{sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)}, which is the principled choice
-when a window contains several candidates. This toggle exists only to allow
-comparison against the published values and is expected to be removed once
-reproduction is confirmed.}
+within the window (by row order) is taken, which can pair an anchor with a
+far candidate while a nearer one sits in the same window; use that only to
+compare against the published values. Keep this in step with \link{pm_config}'s
+\code{legacy}, which is what sets it when the pipeline is run through
+\code{\link[=paramounter]{paramounter()}}.}
 }
 \value{
 A named list with two numeric matrices, \code{mz} and \code{rt}, each with one

@@ -276,7 +276,7 @@ are entered into those programs manually.
 ### Settings
 
 Every setting is held in a `pm_config` object, which is passed to `paramounter()`.
-The defaults follow the published method.
+The numeric settings follow the published method.
 
 ```r
 pm_config(
@@ -286,28 +286,32 @@ pm_config(
   isolation_gap = 300,       # seconds of separation required by step 9
   match_mz_tol = 0.015,      # matching window used by step 12
   match_rt_tol = 30,
-  legacy = TRUE
+  legacy = FALSE
 )
 ```
 
-`legacy` controls whether the package reproduces the original implementation exactly
-or applies four corrections to it.
+`legacy` controls whether the package applies four corrections to the original
+implementation or reproduces it exactly.
 
-| behaviour | `legacy = TRUE` | `legacy = FALSE` |
+| behaviour | `legacy = FALSE` (default) | `legacy = TRUE` |
 |---|---|---|
-| peak width in scans | counts one scan too many | counts the scans spanned |
-| a peak counts as isolated when | only the following peak is distant | both neighbours are distant |
-| matching peaks across files | takes the first candidate in the window | takes the closest candidate |
-| grouping bandwidth for xcms | fixed at 5 | taken from the measured drift |
+| peak width in scans | counts the scans spanned | counts one scan too many |
+| a peak counts as isolated when | both neighbours are distant | only the following peak is distant |
+| matching peaks across files | takes the closest candidate | takes the first candidate in the window |
+| grouping bandwidth for xcms | taken from the measured drift | fixed at 5 |
 
-The default is `TRUE`, which reproduces published results. Use `FALSE` for new
-analyses.
+The default is `FALSE`: the corrections are applied unless you ask for the original.
+Set `legacy = TRUE` when you want to compare against published results, as the next
+section does.
 
 ## Reproducing the published results
 
 The five files shipped with the package are the urine samples distributed with the
 original tool. They were acquired on a Bruker maXis impact Q-TOF in positive mode with
 reversed-phase chromatography, and each contains 633 MS1 scans.
+
+The call below sets `legacy = TRUE`, since the point here is to match the original.
+For a real analysis leave it at its default.
 
 ```{r run, message = FALSE, warning = FALSE}
 library(paramounter)
@@ -318,7 +322,7 @@ files <- list.files(
   full.names = TRUE
 )
 
-params <- paramounter(files, pm_config(ppm_cutoff = 30))
+params <- paramounter(files, pm_config(ppm_cutoff = 30, legacy = TRUE))
 params@summary
 ```
 
@@ -354,11 +358,18 @@ between samples. It is set from the largest instrument mass drift measured in st
 12. One of the 95 matched peaks is paired incorrectly. A peak at m/z 481.12942 in the
 first file is matched to a peak at 481.118316 in the fifth, 11 mDa away, although a
 peak at 481.128420 lies 1 mDa away in the same window. The original takes the first
-candidate found in the matching window rather than the closest, and this package
-reproduces that behaviour. The incorrect pairing raises the measured drift from
-0.0058 to 0.0071. Setting `legacy = FALSE` changes the matching rule, but also
-changes which peaks qualify as isolated in step 9, so it does not recover the
-published value either.
+candidate found in the matching window rather than the closest, which is what
+`legacy = TRUE` reproduces here. The incorrect pairing raises the measured drift from
+0.0058 to 0.0071.
+
+Correcting the matching rule on its own would give exactly the published 0.006, but
+the default `legacy = FALSE` does not recover it: that setting also changes which
+peaks qualify as isolated in step 9, which rebuilds the set of measured peaks and
+lands back at 0.0071. So no single setting reproduces all twelve values at once.
+Eleven of twelve under `legacy = TRUE` is the honest ceiling, and the reason for the
+twelfth is understood. Why the original authors' own run avoided the mis-pairing is
+not recoverable: it depends on the order of peaks within the matching window, which
+their published output does not record.
 
 ## Citation
 

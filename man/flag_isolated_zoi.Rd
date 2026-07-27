@@ -4,7 +4,7 @@
 \alias{flag_isolated_zoi}
 \title{Flag zones of interest that have no close neighbour}
 \usage{
-flag_isolated_zoi(apex_rt, min_gap = 300, legacy_isolation = TRUE)
+flag_isolated_zoi(apex_rt, min_gap = 300, legacy_isolation = FALSE)
 }
 \arguments{
 \item{apex_rt}{Numeric vector of apex retention times for the zones of
@@ -15,14 +15,15 @@ interest in one mass bin, in non-decreasing order (as returned by
 the same units as \code{apex_rt}, for a zone to count as isolated. Defaults to
 \code{300} (five minutes, for retention times in seconds).}
 
-\item{legacy_isolation}{Single \code{TRUE} or \code{FALSE}. When \code{TRUE} (the default)
-the original Paramounter behaviour is reproduced: every zone except the
-last is tested only against the \emph{following} zone, and the last zone only
-against the preceding one, so a zone immediately after a close neighbour is
-still treated as clean. When \code{FALSE} a zone must be separated from
-neighbours on both sides, which is the criterion described in the paper.
-This toggle exists only to allow comparison against the published values
-and is expected to be removed once reproduction is confirmed.}
+\item{legacy_isolation}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default)
+a zone must be separated from neighbours on both sides, which is the
+criterion described in the paper. When \code{TRUE} the original Paramounter
+behaviour is reproduced: every zone except the last is tested only against
+the \emph{following} zone, and the last zone only against the preceding one, so
+a zone immediately after a close neighbour is still treated as clean; use
+that only to compare against the published values. Keep this in step with
+\link{pm_config}'s \code{legacy}, which is what sets it when the pipeline is run
+through \code{\link[=paramounter]{paramounter()}}.}
 }
 \value{
 A logical vector the same length as \code{apex_rt}, \code{TRUE} where the zone
@@ -48,6 +49,6 @@ result with the measurement filters afterwards.
 \examples{
 # the middle zone sits 10 s after its neighbour but 690 s before the next
 flag_isolated_zoi(c(100, 110, 800))
-flag_isolated_zoi(c(100, 110, 800), legacy_isolation = FALSE)
+flag_isolated_zoi(c(100, 110, 800), legacy_isolation = TRUE)
 
 }

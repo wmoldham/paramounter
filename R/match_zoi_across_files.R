@@ -29,14 +29,16 @@
 #'   the anchor's, inclusive.
 #' @param rt_tol Single positive retention-time half-window, in the same units
 #'   as `rt` (default `30`). Applied inclusively, like `mz_tol`.
-#' @param legacy_first_match Single `TRUE` or `FALSE`. When `TRUE` (the default)
+#' @param legacy_first_match Single `TRUE` or `FALSE`. When `FALSE` (the
+#'   default) the *nearest* candidate is taken, minimising the window-normalised
+#'   distance `sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)`, which is the
+#'   principled choice when a window contains several candidates. When `TRUE`
 #'   the original Paramounter behaviour is reproduced: the *first* candidate
-#'   within the window (by row order) is taken. When `FALSE` the *nearest*
-#'   candidate is taken, minimising the window-normalised distance
-#'   `sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)`, which is the principled choice
-#'   when a window contains several candidates. This toggle exists only to allow
-#'   comparison against the published values and is expected to be removed once
-#'   reproduction is confirmed.
+#'   within the window (by row order) is taken, which can pair an anchor with a
+#'   far candidate while a nearer one sits in the same window; use that only to
+#'   compare against the published values. Keep this in step with [pm_config]'s
+#'   `legacy`, which is what sets it when the pipeline is run through
+#'   [paramounter()].
 #'
 #' @return A named list with two numeric matrices, `mz` and `rt`, each with one
 #'   row per matched feature and one column per file (in the order of
@@ -54,7 +56,7 @@ match_zoi_across_files <- function(
     zoi_list,
     mz_tol = 0.015,
     rt_tol = 30,
-    legacy_first_match = TRUE
+    legacy_first_match = FALSE
 ) {
   if (!is.list(zoi_list) || is.data.frame(zoi_list)) {
     stop(

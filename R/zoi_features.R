@@ -42,13 +42,13 @@
 #'   zones at or above it are discarded. Defaults to `Inf` (no filtering).
 #' @param min_masses,max_masses Single positive integers bounding the number of
 #'   collected masses for a zone to be measured (defaults `2` and `199`).
-#' @param legacy_scan_count Single `TRUE` or `FALSE`. When `TRUE` (the default)
-#'   `width_scans` reproduces the original Paramounter implementation, which
-#'   counts `right_edge - left_edge + 2` and so overstates the inclusive scan
-#'   span by one. When `FALSE` the corrected span `right_edge - left_edge + 1`
-#'   is returned. This toggle exists only to allow comparison against the
-#'   published values and is expected to be removed once reproduction is
-#'   confirmed.
+#' @param legacy_scan_count Single `TRUE` or `FALSE`. When `FALSE` (the default)
+#'   `width_scans` is the corrected inclusive span `right_edge - left_edge + 1`.
+#'   When `TRUE` it reproduces the original Paramounter implementation, which
+#'   counts `right_edge - left_edge + 2` and so overstates the span by one; use
+#'   that only to compare against the published values. Keep this in step with
+#'   [pm_config]'s `legacy`, which is what sets it when the pipeline is run
+#'   through [paramounter()].
 #'
 #' @return A named list with elements `reference_mz`, `apex_rt`, `ppm`,
 #'   `mz_diff` (absolute tolerance, Da), `width_seconds`, `width_scans`, `sn`,
@@ -86,7 +86,7 @@ zoi_features <- function(
     ppm_cutoff = Inf,
     min_masses = 2L,
     max_masses = 199L,
-    legacy_scan_count = TRUE
+    legacy_scan_count = FALSE
 ) {
   check_numeric_vector(masses, "masses")
   check_numeric_vector(rtime, "rtime", allow_empty = FALSE)

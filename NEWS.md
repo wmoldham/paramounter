@@ -2,6 +2,22 @@
 
 First working version. The package is not yet released; it installs from GitHub only.
 
+## Behaviour change
+
+* **The corrections to the original method are now applied by default.**
+  `pm_config()`'s `legacy` argument defaults to `FALSE` rather than `TRUE`, and the
+  `legacy_scan_count`, `legacy_isolation` and `legacy_first_match` arguments of
+  `zoi_features()`, `flag_isolated_zoi()` and `match_zoi_across_files()` follow it.
+
+  This changes results. Peak width in scans is one lower, a peak counts as isolated
+  only when both its neighbours are distant, cross-file matching takes the nearest
+  candidate rather than the first in the window, and the xcms grouping bandwidth comes
+  from the measured drift instead of being fixed at 5. On the shipped demo data the
+  visible effect on `to_xcms()` is `prefilter` 3 to 2 and `bw` 5 to 7.3.
+
+  Pass `pm_config(legacy = TRUE)` for the previous behaviour. Reproducing published
+  values needs it, and the README's reproduction section sets it explicitly.
+
 ## Measuring parameters
 
 * `paramounter()` measures universal LC-MS parameters directly from centroided data

@@ -3,9 +3,9 @@
 \docType{package}
 \name{paramounter-package}
 \alias{paramounter-package}
-\title{paramounter: What the Package Does (One Line, Title Case)}
+\title{paramounter: Measure LC-MS Processing Parameters Directly from Your Data}
 \description{
-What the package does (one paragraph).
+Measures universal liquid chromatography-mass spectrometry parameters - mass tolerance, noise level, peak width, signal-to-noise ratio, peak height, and instrument mass and retention time shift - directly from centroided data files, then translates them into processing settings for 'xcms', MS-DIAL, and MZmine. Unlike approaches that search a parameter space against an objective function, the parameters are measured from the data itself, so a single pass over the files is enough. Implements the method of Guo and Huan (2022) \doi{10.1021/acs.analchem.1c04758}.
 }
 \author{
 \strong{Maintainer}: William Oldham \email{wm.oldham@gmail.com} (\href{https://orcid.org/0000-0003-3029-4866}{ORCID})

@@ -3,9 +3,11 @@
 #' Configuration for a Paramounter analysis
 #'
 #' Bundles every setting that controls parameter estimation into one validated
-#' object, which the analysis threads through to each step. All arguments have
-#' defaults matching the published Paramounter method, so `pm_config()` returns
-#' the standard configuration.
+#' object, which the analysis threads through to each step. The numeric settings
+#' default to the published Paramounter values, so `pm_config()` returns the
+#' standard configuration. The exception is `legacy`, which defaults to `FALSE`:
+#' the package applies its corrections to the original method unless you ask it
+#' not to.
 #'
 #' @param bin_width Positive m/z bin width for [bin_peaks()] (default `0.05`).
 #' @param smooth_half_window Non-negative integer smoothing half-window for
@@ -30,11 +32,12 @@
 #'   `30`).
 #' @param trim Single number in `(0, 1]` giving the fraction of each parameter
 #'   distribution kept when trimming outliers (default `0.97`).
-#' @param legacy Single `TRUE` or `FALSE`. When `TRUE` (the default) the whole
-#'   pipeline reproduces the original Paramounter behaviour, driving the
-#'   scan-count, isolation, and first-match choices together; set `FALSE` for the
-#'   corrected behaviour throughout. Provided to allow comparison against the
-#'   published values.
+#' @param legacy Single `TRUE` or `FALSE`. When `FALSE` (the default) the
+#'   pipeline uses the corrected behaviour throughout. Set `TRUE` to reproduce
+#'   the original Paramounter end to end, including its known quirks: it drives
+#'   the scan-count, isolation, first-match, and grouping-bandwidth choices
+#'   together. Use it to compare against the published values, not for new
+#'   analyses — see the README for what each choice changes.
 #'
 #' @return A `pm_config` object.
 #'
@@ -42,7 +45,7 @@
 #'
 #' @examples
 #' pm_config()
-#' pm_config(bin_width = 0.02, smooth_half_window = 4L, legacy = FALSE)
+#' pm_config(bin_width = 0.02, smooth_half_window = 4L, legacy = TRUE)
 #' pm_config(ppm_cutoff = 20) # fixed ppm cutoff instead of automatic
 #'
 #' @export
@@ -140,7 +143,7 @@ pm_config <- new_class(
     ),
     legacy = new_property(
       class_any,
-      default = TRUE,
+      default = FALSE,
       validator = function(value) as_message(check_flag(value, "legacy"))
     )
   ),

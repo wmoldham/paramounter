@@ -12,7 +12,9 @@ mzXML, or CDF). At least two files are needed to estimate instrument shifts;
 with a single file the shift distributions are empty.}
 
 \item{config}{A \link{pm_config} giving the analysis settings (default
-\code{pm_config()}, the published defaults).}
+\code{pm_config()}: the published numeric settings, with the corrections to the
+original method applied). Pass \code{pm_config(legacy = TRUE)} to reproduce the
+original end to end instead.}
 
 \item{reader}{Function used to read one file into per-scan traces, called as
 \code{reader(file)} and returning a list with \code{mz}, \code{intensity}, and \code{rtime}.
