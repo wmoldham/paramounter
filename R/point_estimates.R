@@ -6,7 +6,9 @@
 #' distributions with `NA`. The peak-width bounds apply the original's wide-peak
 #' adjustment, using the 5%-trimmed-mean height-to-width ratio.
 #'
-#' @param distributions The `distributions` list of a [universal_parameters].
+#' @param distributions Named list of one numeric vector per quantity, the
+#'   `distributions` property of a [universal_parameters]. Quantities with no
+#'   measurements are empty vectors.
 #' @return A named list of estimates.
 #' @noRd
 point_estimates <- function(distributions) {
@@ -39,16 +41,16 @@ point_estimates <- function(distributions) {
   )
 }
 
-#' Require that the estimates a translator needs were actually measured
+#' Require that the estimates a translator needs were measured
 #'
 #' Each translator needs a different subset of `point_estimates()`, and any of
 #' them is `NA` when the underlying distribution was never measured. Report all
-#' the missing ones at once rather than failing on the first, so a user with an
-#' empty run learns everything that is wrong in one go.
+#' the missing ones rather than failing on the first, so a user with an empty run
+#' sees everything at once.
 #'
 #' @param est The list returned by `point_estimates()`.
-#' @param required Named character vector mapping the label to report to the
-#'   name of the estimate it comes from. Order is preserved in the message.
+#' @param required Named character vector. Names are the labels to report,
+#'   values the estimates they come from. Order is preserved in the message.
 #' @param software Software name, used in the error message.
 #'
 #' @return `est`, invisibly.
@@ -71,13 +73,14 @@ require_estimates <- function(est, required, software) {
 #' Assemble a translator's parameter/value table
 #'
 #' Shared by [to_msdial()] and [to_mzmine()], which differ only in their labels
-#' and expressions. The alignment tolerances are appended only when the
-#' instrument shifts were measured, which needs two or more files.
+#' and the values they compute. The alignment tolerances are appended only when
+#' the instrument shifts were measured, which needs two or more files.
 #'
-#' @param parameter,value Parallel vectors of setting names and values.
+#' @param parameter,value Parallel vectors: `parameter` character, `value`
+#'   numeric.
 #' @param est The list returned by `point_estimates()`.
 #' @param shift_labels Length-two character vector naming the mass- and
-#'   retention-time alignment tolerances, or `NULL` to never append them.
+#'   retention-time alignment tolerances, or `NULL` to omit them.
 #'
 #' @return A data frame with columns `parameter` and `value`.
 #' @noRd
@@ -93,10 +96,10 @@ parameter_table <- function(parameter, value, est, shift_labels = NULL) {
   )
 }
 
-#' Return a table, writing it to CSV first when a path was given
+#' Write a table to CSV when a path is given
 #'
 #' @param table A data frame.
-#' @param file Optional path.
+#' @param file Optional path to write to. `NULL` writes nothing.
 #'
 #' @return `table`.
 #' @noRd

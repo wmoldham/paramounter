@@ -24,14 +24,11 @@
 #'   the same units as `apex_rt`, for a zone to count as isolated. Defaults to
 #'   `300` (five minutes, for retention times in seconds).
 #' @param legacy_isolation Single `TRUE` or `FALSE`. When `FALSE` (the default)
-#'   a zone must be separated from neighbours on both sides, which is the
-#'   criterion described in the paper. When `TRUE` the original Paramounter
-#'   behaviour is reproduced: every zone except the last is tested only against
-#'   the *following* zone, and the last zone only against the preceding one, so
-#'   a zone immediately after a close neighbour is still treated as clean; use
-#'   that only to compare against the published values. Keep this in step with
-#'   [pm_config]'s `legacy`, which is what sets it when the pipeline is run
-#'   through [paramounter()].
+#'   a zone must be separated from its neighbours on both sides, the criterion
+#'   the paper describes. When `TRUE` it reproduces the original, which tests
+#'   every zone but the last against only the *following* zone, and the last
+#'   against only the preceding one. [paramounter()] sets this from [pm_config]'s
+#'   `legacy`.
 #'
 #' @return A logical vector the same length as `apex_rt`, `TRUE` where the zone
 #'   is isolated.

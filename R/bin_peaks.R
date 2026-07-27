@@ -103,10 +103,9 @@ bin_peaks <- function(mz_list, int_list, bin_width = 0.05, mz_range = NULL) {
 
   # Group the rows by bin without going through a factor. split() would coerce
   # every one of the hundreds of thousands of bin indices to character and then
-  # parse each bin's name back to an integer, which made this the single most
-  # expensive step of a file. order() on an integer vector is a stable radix
-  # sort, so rows keep their original order within each bin — that order is
-  # scan-ascending, which assemble_bin_traces and the mass walk both rely on.
+  # parse each bin's name back to an integer. order() on an integer vector is a
+  # stable radix sort, so rows keep their original order within each bin — that
+  # order is scan-ascending, which assemble_bin_traces and the mass walk rely on.
   if (length(bin) == 0L) {
     bins <- list()
   } else {

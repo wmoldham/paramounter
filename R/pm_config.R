@@ -3,21 +3,20 @@
 #' Build a property validator from a `check_*` function
 #'
 #' Every `pm_config` property validates the same way: run a `check_*` helper and
-#' hand S7 the `NULL`-or-string form it wants. Without this, each of the fourteen
-#' properties carried its own copy of that closure.
+#' return the `NULL`-or-string form S7 expects. Without this, every property
+#' carried its own copy of that closure.
 #'
 #' The property name is still passed as a string, because an S7 validator
 #' receives only the value and has no way to learn which property it guards.
-#'
-#' Note this must be defined *above* the class's roxygen block: a helper placed
-#' between that block and `new_class()` merges the two blocks, and this one's
-#' `@noRd` then suppresses the class's own help page.
 #'
 #' @param check A `check_*` function taking `(value, name)`.
 #' @param name The property name, used in the error message.
 #'
 #' @return A validator function suitable for `new_property()`.
 #' @noRd
+# Must stay above the pm_config roxygen block. A helper placed between that block
+# and new_class() merges the two, and this @noRd then suppresses the class's own
+# help page.
 checked <- function(check, name) {
   force(check)
   force(name)
@@ -33,35 +32,39 @@ checked <- function(check, name) {
 #' the package applies its corrections to the original method unless you ask it
 #' not to.
 #'
-#' @param bin_width Positive m/z bin width for [bin_peaks()] (default `0.05`).
-#' @param smooth_half_window Non-negative integer smoothing half-window for
-#'   [smooth_intensity()] (default `0`, no smoothing).
-#' @param noise_block_size Positive integer block size for the rank-based noise
-#'   estimate in [estimate_noise()] (default `10`).
-#' @param noise_sd_factor Non-negative multiplier on the noise-floor standard
-#'   deviation in [estimate_noise()] (default `3`).
-#' @param mass_sd_range Positive multiplier on the mass standard deviation when
-#'   converting to a tolerance in [zoi_features()] (default `2`).
-#' @param ppm_cutoff Positive relative-tolerance cutoff for discarding noisy
-#'   zones, or `NULL` (the default) to determine it automatically from the data
-#'   at `ppm_quantile`.
-#' @param ppm_quantile Single number in `(0, 1]` giving the quantile used to set
-#'   the ppm cutoff automatically when `ppm_cutoff` is `NULL` (default `0.95`).
-#' @param min_masses,max_masses Positive integers bounding the number of masses a
-#'   zone must contain to be measured (defaults `2` and `199`).
-#' @param isolation_gap Non-negative minimum retention-time separation for a zone
-#'   to count as isolated in [flag_isolated_zoi()] (default `300`).
-#' @param match_mz_tol,match_rt_tol Positive m/z and retention-time half-windows
-#'   for cross-file matching in [match_zoi_across_files()] (defaults `0.015` and
-#'   `30`).
-#' @param trim Single number in `(0, 1]` giving the fraction of each parameter
-#'   distribution kept when trimming outliers (default `0.97`).
+#' @param bin_width Single positive number. The width of the mass bins, in Da
+#'   (default `0.05`).
+#' @param smooth_half_window Single non-negative integer. The half-window of the
+#'   moving average applied to each chromatogram (default `0`, no smoothing).
+#' @param noise_block_size Single positive integer. The noise estimate walks the
+#'   sorted intensities this many at a time (default `10`).
+#' @param noise_sd_factor Single non-negative number. How many standard
+#'   deviations above the running mean an intensity must sit to count as signal
+#'   rather than noise (default `3`).
+#' @param mass_sd_range Single positive number. The mass tolerance reported for a
+#'   zone is this many standard deviations of its collected masses (default `2`).
+#' @param ppm_cutoff Single positive number. Zones whose relative mass tolerance
+#'   reaches this value are discarded as noise. `NULL`, the default, takes the
+#'   cutoff from the data at `ppm_quantile` instead.
+#' @param ppm_quantile Single number in `(0, 1]`. The quantile of the pooled ppm
+#'   distribution used as the cutoff when `ppm_cutoff` is `NULL` (default
+#'   `0.95`).
+#' @param min_masses,max_masses Single positive integers bounding how many masses
+#'   a zone must contain to be measured (defaults `2` and `199`).
+#' @param isolation_gap Single non-negative number. The retention-time
+#'   separation, in seconds, a zone needs from its neighbours to count as
+#'   isolated (default `300`, five minutes).
+#' @param match_mz_tol,match_rt_tol Single positive numbers. The half-windows for
+#'   matching zones across files: m/z in Da, retention time in seconds (defaults
+#'   `0.015` and `30`).
+#' @param trim Single number in `(0, 1]`. The fraction of each distribution kept.
+#'   The rest is dropped from one end, whichever is opposite the statistic that
+#'   quantity is summarised by (default `0.97`).
 #' @param legacy Single `TRUE` or `FALSE`. When `FALSE` (the default) the
-#'   pipeline uses the corrected behaviour throughout. Set `TRUE` to reproduce
-#'   the original Paramounter end to end, including its known quirks: it drives
-#'   the scan-count, isolation, first-match, and grouping-bandwidth choices
-#'   together. Use it to compare against the published values, not for new
-#'   analyses — see the README for what each choice changes.
+#'   pipeline applies its corrections to the original method. When `TRUE` it
+#'   reproduces the original end to end, setting the scan-count, isolation,
+#'   first-match, and grouping-bandwidth behaviour together. Use it to compare
+#'   against published values. The README tabulates what each one changes.
 #'
 #' @return A `pm_config` object.
 #'

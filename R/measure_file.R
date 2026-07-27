@@ -1,8 +1,8 @@
 # measure_file.R
 
 # The columns of the per-zone result, as length-one prototypes. Declared once so
-# the empty case and the assembled case cannot drift apart, and reused as the
-# `vapply` FUN.VALUE that type-checks every column as it is built.
+# the empty case matches the assembled case. Each prototype doubles as the
+# `vapply` FUN.VALUE that type-checks its column as it is built.
 ZOI_COLUMNS <- list(
   ppm = NA_real_,
   mz_diff = NA_real_,
@@ -18,9 +18,8 @@ ZOI_COLUMNS <- list(
 #' Assemble the collected per-zone measurements into a data frame
 #'
 #' Zones are collected as bare lists and turned into columns once, at the end.
-#' Building a one-row `data.frame()` per zone instead cost about a fifth of the
-#' per-file runtime: there are tens of thousands of zones, and each call pays
-#' for deparsing its column names.
+#' There are tens of thousands of zones per file, and building a one-row
+#' `data.frame()` for each is slow: every call deparses its own column names.
 #'
 #' @param rows List of per-zone named lists, each holding one value per column
 #'   of `ZOI_COLUMNS`.
@@ -42,12 +41,12 @@ assemble_zoi <- function(rows) {
 
 #' Measure universal-parameter contributions from one file
 #'
-#' Runs the full per-file measurement chain over one file's extracted per-scan
-#' peak data: it bins the peaks, and for every mass bin with signal it estimates
-#' the noise floor and locates the zones of interest, measuring each zone's mass
-#' tolerance, peak width, signal-to-noise, and height. This is the per-file step
-#' of the analysis, called once per file by the orchestrator; [read_ms_data()]
-#' supplies its input and the aggregation across files consumes its output.
+#' Runs the full measurement chain over one file's extracted per-scan peak data.
+#' It bins the peaks. Then, for every mass bin with signal, it estimates the
+#' noise floor and locates the zones of interest, measuring each zone's mass
+#' tolerance, peak width, signal-to-noise, and height.
+#'
+#' [read_ms_data()] supplies its input; `aggregate_files()` consumes its output.
 #'
 #' The relative-tolerance (ppm) cutoff is not applied here. Every zone clearing
 #' the mass-count bounds is returned, so its ppm value can enter the pooled
@@ -56,9 +55,9 @@ assemble_zoi <- function(rows) {
 #' from [flag_isolated_zoi()] marking whether it can seed cross-file shift
 #' estimation.
 #'
-#' The mass-trace outlier settings (`min_points`, `fence` of
-#' [collect_zoi_masses()]) are left at their defaults and are not exposed on
-#' [pm_config]; they can be added there later if they need to be tunable.
+#' The mass-trace outlier settings, `min_points` and `fence` of
+#' [collect_zoi_masses()], are left at their defaults and are not exposed on
+#' [pm_config].
 #'
 #' @param mz List with one numeric vector of m/z values per scan, as in the `mz`
 #'   element returned by [read_ms_data()].
@@ -89,9 +88,9 @@ measure_file <- function(mz, intensity, rtime, config = pm_config()) {
 
   binned <- bin_peaks(mz, intensity, bin_width = config@bin_width)
   n_scans <- binned$n_scans
-  # both accumulators are filled by index rather than grown with c()/append:
-  # there is one noise value per bin and one row per zone, tens of thousands of
-  # each, and repeated reallocation was a sixth of the per-file runtime
+  # both accumulators are filled by index rather than grown with c()/append.
+  # There is one noise value per bin and one row per zone, tens of thousands of
+  # each, so growing them reallocates on nearly every iteration.
   n_bins <- length(binned$bins)
   noise_values <- numeric(n_bins)
   n_noise <- 0L

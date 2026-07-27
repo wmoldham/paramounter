@@ -27,14 +27,11 @@ as \code{rt} (default \code{30}). Applied inclusively, like \code{mz_tol}.}
 
 \item{legacy_first_match}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the
 default) the \emph{nearest} candidate is taken, minimising the window-normalised
-distance \code{sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)}, which is the
-principled choice when a window contains several candidates. When \code{TRUE}
-the original Paramounter behaviour is reproduced: the \emph{first} candidate
-within the window (by row order) is taken, which can pair an anchor with a
-far candidate while a nearer one sits in the same window; use that only to
-compare against the published values. Keep this in step with \link{pm_config}'s
-\code{legacy}, which is what sets it when the pipeline is run through
-\code{\link[=paramounter]{paramounter()}}.}
+distance \code{sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)}. When \code{TRUE} it
+reproduces the original, which takes the \emph{first} candidate in the window by
+row order; that can pair an anchor with a far candidate while a nearer one
+sits in the same window. \code{\link[=paramounter]{paramounter()}} sets this from \link{pm_config}'s
+\code{legacy}.}
 }
 \value{
 A named list with two numeric matrices, \code{mz} and \code{rt}, each with one

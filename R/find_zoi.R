@@ -44,9 +44,9 @@ find_zoi <- function(intensity, cutoff) {
 #'
 #' The unvalidated core of [find_zoi()]. The measurement loop calls this once
 #' per mass bin, tens of thousands of times per file, and only ever reads the
-#' index vectors — so it skips both the argument checks (the caller has already
-#' validated the trace) and the `data.frame()` wrapper, which together were a
-#' fifth of the per-file runtime. [find_zoi()] itself is unchanged.
+#' index vectors. So it skips the argument checks, the caller having already
+#' validated the trace, and the `data.frame()` wrapper that the loop would
+#' immediately take apart again.
 #'
 #' @param intensity Numeric vector of per-scan intensities.
 #' @param cutoff Single non-negative noise cutoff.

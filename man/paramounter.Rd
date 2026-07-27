@@ -18,8 +18,8 @@ original end to end instead.}
 
 \item{reader}{Function used to read one file into per-scan traces, called as
 \code{reader(file)} and returning a list with \code{mz}, \code{intensity}, and \code{rtime}.
-Defaults to \link{read_ms_data}; override it to read a format the default reader
-does not handle, or to supply pre-processed data.}
+Defaults to \code{\link[=read_ms_data]{read_ms_data()}}; override it to read a format the default
+reader does not handle, or to supply pre-processed data.}
 }
 \value{
 A \link{universal_parameters} object holding the measured parameter
@@ -27,13 +27,17 @@ distributions, their summary, and the files and configuration used.
 }
 \description{
 Runs the complete Paramounter analysis over a set of centroided
-mass-spectrometry data files and returns the measured universal parameters.
-Each file is read and measured in turn — its peaks binned, and every mass
+mass-spectrometry data files.
+}
+\details{
+Each file is read and measured in turn. Its peaks are binned, and every mass
 bin's noise, zones of interest, mass tolerance, peak width, signal-to-noise,
-and height determined — and the per-file results are pooled, trimmed, and
-(across two or more files) combined with the estimated instrument mass and
-retention-time shifts into a single \link{universal_parameters} object. Translate
-that object to software-specific settings with the \verb{to_*} functions.
+and height are determined. The per-file results are then pooled and trimmed
+into a single \link{universal_parameters} object. Given two or more files, the
+estimated instrument mass and retention-time shifts are included too.
+
+Translate that object to software-specific settings with \code{\link[=to_xcms]{to_xcms()}},
+\code{\link[=to_msdial]{to_msdial()}}, or \code{\link[=to_mzmine]{to_mzmine()}}.
 }
 \examples{
 \dontrun{

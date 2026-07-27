@@ -9,13 +9,12 @@
 #' and peak height. Two validity filters are applied first, matching the
 #' original Paramounter workflow: the mass vector must contain between
 #' `min_masses` and `max_masses` values, and the relative mass tolerance must
-#' fall below `ppm_cutoff`. A zone that fails either filter yields no measurement
-#' and `NULL` is returned.
+#' fall below `ppm_cutoff`.
 #'
 #' The relative mass tolerance is `sd_range * sd(masses) / reference_mz * 1e6`
-#' and the absolute tolerance is `sd_range * sd(masses)`, both representing the
-#' mass fluctuation across the peak at the chosen confidence (default `sd_range`
-#' of 2, roughly 95%). The signal-to-noise ratio is
+#' and the absolute tolerance is `sd_range * sd(masses)`. Both describe the mass
+#' fluctuation across the peak, scaled by `sd_range` (default `2`). The
+#' signal-to-noise ratio is
 #' `(apex_intensity - noise_mean) / noise_sd`; when `noise_sd` is zero it is
 #' infinite, as in the original.
 #'
@@ -43,12 +42,10 @@
 #' @param min_masses,max_masses Single positive integers bounding the number of
 #'   collected masses for a zone to be measured (defaults `2` and `199`).
 #' @param legacy_scan_count Single `TRUE` or `FALSE`. When `FALSE` (the default)
-#'   `width_scans` is the corrected inclusive span `right_edge - left_edge + 1`.
-#'   When `TRUE` it reproduces the original Paramounter implementation, which
-#'   counts `right_edge - left_edge + 2` and so overstates the span by one; use
-#'   that only to compare against the published values. Keep this in step with
-#'   [pm_config]'s `legacy`, which is what sets it when the pipeline is run
-#'   through [paramounter()].
+#'   `width_scans` is the inclusive span `right_edge - left_edge + 1`. When
+#'   `TRUE` it reproduces the original, which counts `right_edge - left_edge + 2`
+#'   and so overstates the span by one. [paramounter()] sets this from
+#'   [pm_config]'s `legacy`.
 #'
 #' @return A named list with elements `reference_mz`, `apex_rt`, `ppm`,
 #'   `mz_diff` (absolute tolerance, Da), `width_seconds`, `width_scans`, `sn`,

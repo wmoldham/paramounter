@@ -22,46 +22,50 @@ pm_config(
 )
 }
 \arguments{
-\item{bin_width}{Positive m/z bin width for \code{\link[=bin_peaks]{bin_peaks()}} (default \code{0.05}).}
+\item{bin_width}{Single positive number. The width of the mass bins, in Da
+(default \code{0.05}).}
 
-\item{smooth_half_window}{Non-negative integer smoothing half-window for
-\code{\link[=smooth_intensity]{smooth_intensity()}} (default \code{0}, no smoothing).}
+\item{smooth_half_window}{Single non-negative integer. The half-window of the
+moving average applied to each chromatogram (default \code{0}, no smoothing).}
 
-\item{noise_block_size}{Positive integer block size for the rank-based noise
-estimate in \code{\link[=estimate_noise]{estimate_noise()}} (default \code{10}).}
+\item{noise_block_size}{Single positive integer. The noise estimate walks the
+sorted intensities this many at a time (default \code{10}).}
 
-\item{noise_sd_factor}{Non-negative multiplier on the noise-floor standard
-deviation in \code{\link[=estimate_noise]{estimate_noise()}} (default \code{3}).}
+\item{noise_sd_factor}{Single non-negative number. How many standard
+deviations above the running mean an intensity must sit to count as signal
+rather than noise (default \code{3}).}
 
-\item{mass_sd_range}{Positive multiplier on the mass standard deviation when
-converting to a tolerance in \code{\link[=zoi_features]{zoi_features()}} (default \code{2}).}
+\item{mass_sd_range}{Single positive number. The mass tolerance reported for a
+zone is this many standard deviations of its collected masses (default \code{2}).}
 
-\item{ppm_cutoff}{Positive relative-tolerance cutoff for discarding noisy
-zones, or \code{NULL} (the default) to determine it automatically from the data
-at \code{ppm_quantile}.}
+\item{ppm_cutoff}{Single positive number. Zones whose relative mass tolerance
+reaches this value are discarded as noise. \code{NULL}, the default, takes the
+cutoff from the data at \code{ppm_quantile} instead.}
 
-\item{ppm_quantile}{Single number in \verb{(0, 1]} giving the quantile used to set
-the ppm cutoff automatically when \code{ppm_cutoff} is \code{NULL} (default \code{0.95}).}
+\item{ppm_quantile}{Single number in \verb{(0, 1]}. The quantile of the pooled ppm
+distribution used as the cutoff when \code{ppm_cutoff} is \code{NULL} (default
+\code{0.95}).}
 
-\item{min_masses, max_masses}{Positive integers bounding the number of masses a
-zone must contain to be measured (defaults \code{2} and \code{199}).}
+\item{min_masses, max_masses}{Single positive integers bounding how many masses
+a zone must contain to be measured (defaults \code{2} and \code{199}).}
 
-\item{isolation_gap}{Non-negative minimum retention-time separation for a zone
-to count as isolated in \code{\link[=flag_isolated_zoi]{flag_isolated_zoi()}} (default \code{300}).}
+\item{isolation_gap}{Single non-negative number. The retention-time
+separation, in seconds, a zone needs from its neighbours to count as
+isolated (default \code{300}, five minutes).}
 
-\item{match_mz_tol, match_rt_tol}{Positive m/z and retention-time half-windows
-for cross-file matching in \code{\link[=match_zoi_across_files]{match_zoi_across_files()}} (defaults \code{0.015} and
-\code{30}).}
+\item{match_mz_tol, match_rt_tol}{Single positive numbers. The half-windows for
+matching zones across files: m/z in Da, retention time in seconds (defaults
+\code{0.015} and \code{30}).}
 
-\item{trim}{Single number in \verb{(0, 1]} giving the fraction of each parameter
-distribution kept when trimming outliers (default \code{0.97}).}
+\item{trim}{Single number in \verb{(0, 1]}. The fraction of each distribution kept.
+The rest is dropped from one end, whichever is opposite the statistic that
+quantity is summarised by (default \code{0.97}).}
 
 \item{legacy}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default) the
-pipeline uses the corrected behaviour throughout. Set \code{TRUE} to reproduce
-the original Paramounter end to end, including its known quirks: it drives
-the scan-count, isolation, first-match, and grouping-bandwidth choices
-together. Use it to compare against the published values, not for new
-analyses — see the README for what each choice changes.}
+pipeline applies its corrections to the original method. When \code{TRUE} it
+reproduces the original end to end, setting the scan-count, isolation,
+first-match, and grouping-bandwidth behaviour together. Use it to compare
+against published values. The README tabulates what each one changes.}
 }
 \value{
 A \code{pm_config} object.

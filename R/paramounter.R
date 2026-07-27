@@ -3,13 +3,16 @@
 #' Measure universal LC-MS parameters from data files
 #'
 #' Runs the complete Paramounter analysis over a set of centroided
-#' mass-spectrometry data files and returns the measured universal parameters.
-#' Each file is read and measured in turn — its peaks binned, and every mass
+#' mass-spectrometry data files.
+#'
+#' Each file is read and measured in turn. Its peaks are binned, and every mass
 #' bin's noise, zones of interest, mass tolerance, peak width, signal-to-noise,
-#' and height determined — and the per-file results are pooled, trimmed, and
-#' (across two or more files) combined with the estimated instrument mass and
-#' retention-time shifts into a single [universal_parameters] object. Translate
-#' that object to software-specific settings with the `to_*` functions.
+#' and height are determined. The per-file results are then pooled and trimmed
+#' into a single [universal_parameters] object. Given two or more files, the
+#' estimated instrument mass and retention-time shifts are included too.
+#'
+#' Translate that object to software-specific settings with [to_xcms()],
+#' [to_msdial()], or [to_mzmine()].
 #'
 #' @param files Character vector of paths to the data files to analyse (mzML,
 #'   mzXML, or CDF). At least two files are needed to estimate instrument shifts;
@@ -20,8 +23,8 @@
 #'   original end to end instead.
 #' @param reader Function used to read one file into per-scan traces, called as
 #'   `reader(file)` and returning a list with `mz`, `intensity`, and `rtime`.
-#'   Defaults to [read_ms_data]; override it to read a format the default reader
-#'   does not handle, or to supply pre-processed data.
+#'   Defaults to [read_ms_data()]; override it to read a format the default
+#'   reader does not handle, or to supply pre-processed data.
 #'
 #' @return A [universal_parameters] object holding the measured parameter
 #'   distributions, their summary, and the files and configuration used.

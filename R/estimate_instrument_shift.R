@@ -5,10 +5,10 @@
 #' Summarises the matched features from [match_zoi_across_files()] into the two
 #' shift distributions that set the cross-file alignment tolerances: for each
 #' feature, the spread of its m/z across files (`max - min`) and the spread of
-#' its retention time across files. The maxima of these distributions become the
-#' alignment windows for the target software, but that trimming and maximum is
-#' applied together with the other universal-parameter distributions downstream,
-#' so this function returns the untrimmed per-feature values.
+#' its retention time across files. The maxima of these two distributions set the
+#' alignment windows for the target software. Trimming and the maximum are
+#' applied downstream, alongside the other distributions, so this function
+#' returns the untrimmed per-feature values.
 #'
 #' @param matched List of two numeric matrices `mz` and `rt`, as returned by
 #'   [match_zoi_across_files()]: one row per matched feature, one column per

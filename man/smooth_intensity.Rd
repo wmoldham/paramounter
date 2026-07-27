@@ -24,8 +24,7 @@ chromatograms prior to zone-of-interest detection. The window is symmetric,
 with \code{half_window} points on each side of the centre; weights rise linearly
 towards the centre (\verb{1, 2, ..., half_window + 1, ..., 2, 1}) and are
 renormalised at the two ends so that each position is averaged only over the
-points that actually exist. A \code{half_window} of \code{0} performs no smoothing and
-returns the input unchanged.
+points that actually exist. A \code{half_window} of \code{0} returns the input unchanged.
 }
 \examples{
 smooth_intensity(c(10, 100, 40, 80, 20), half_window = 1)

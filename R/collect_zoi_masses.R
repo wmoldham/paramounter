@@ -4,13 +4,17 @@
 #'
 #' Starting at the apex of a zone of interest, walks left and then right across
 #' adjacent scans, collecting at each scan the m/z value nearest the reference
-#' m/z. The walk in a given direction stops when it reaches the end of the
-#' trace, a scan with no signal in the mass bin, a scan whose mean intensity
-#' falls below the noise cutoff, or (once more than `min_points` values have been
-#' collected and the smoothed intensity has begun rising again, indicating an
-#' adjacent coeluting peak) a scan whose m/z is a Tukey-fence outlier relative to
-#' the values gathered so far. The collected m/z values are used downstream to
-#' measure mass tolerance, and the scan boundaries to measure peak width.
+#' m/z. The walk in a given direction stops at the end of the trace, at a scan
+#' with no signal in the mass bin, or at a scan whose mean intensity falls below
+#' the noise cutoff.
+#'
+#' It also stops when the m/z it collects is a Tukey-fence outlier against the
+#' values gathered so far, which marks an adjacent coeluting peak. That test
+#' applies only once more than `min_points` values have been collected and the
+#' smoothed intensity has begun rising again.
+#'
+#' The collected m/z values are used downstream to measure mass tolerance, and
+#' the scan boundaries to measure peak width.
 #'
 #' @param mz_list List with one element per scan; each element is the numeric
 #'   vector of m/z values falling in the mass bin at that scan (possibly empty).

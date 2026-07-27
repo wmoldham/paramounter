@@ -58,12 +58,10 @@ zones at or above it are discarded. Defaults to \code{Inf} (no filtering).}
 collected masses for a zone to be measured (defaults \code{2} and \code{199}).}
 
 \item{legacy_scan_count}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default)
-\code{width_scans} is the corrected inclusive span \code{right_edge - left_edge + 1}.
-When \code{TRUE} it reproduces the original Paramounter implementation, which
-counts \code{right_edge - left_edge + 2} and so overstates the span by one; use
-that only to compare against the published values. Keep this in step with
-\link{pm_config}'s \code{legacy}, which is what sets it when the pipeline is run
-through \code{\link[=paramounter]{paramounter()}}.}
+\code{width_scans} is the inclusive span \code{right_edge - left_edge + 1}. When
+\code{TRUE} it reproduces the original, which counts \code{right_edge - left_edge + 2}
+and so overstates the span by one. \code{\link[=paramounter]{paramounter()}} sets this from
+\link{pm_config}'s \code{legacy}.}
 }
 \value{
 A named list with elements \code{reference_mz}, \code{apex_rt}, \code{ppm},
@@ -78,14 +76,13 @@ tolerance (Da), peak width in seconds and in scans, signal-to-noise ratio,
 and peak height. Two validity filters are applied first, matching the
 original Paramounter workflow: the mass vector must contain between
 \code{min_masses} and \code{max_masses} values, and the relative mass tolerance must
-fall below \code{ppm_cutoff}. A zone that fails either filter yields no measurement
-and \code{NULL} is returned.
+fall below \code{ppm_cutoff}.
 }
 \details{
 The relative mass tolerance is \code{sd_range * sd(masses) / reference_mz * 1e6}
-and the absolute tolerance is \code{sd_range * sd(masses)}, both representing the
-mass fluctuation across the peak at the chosen confidence (default \code{sd_range}
-of 2, roughly 95\%). The signal-to-noise ratio is
+and the absolute tolerance is \code{sd_range * sd(masses)}. Both describe the mass
+fluctuation across the peak, scaled by \code{sd_range} (default \code{2}). The
+signal-to-noise ratio is
 \code{(apex_intensity - noise_mean) / noise_sd}; when \code{noise_sd} is zero it is
 infinite, as in the original.
 }

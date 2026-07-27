@@ -6,7 +6,7 @@
 #' @param name Argument name, used in the error message.
 #' @param allow_empty Whether a zero-length vector is acceptable.
 #'
-#' @return `x`, invisibly. Called for its side effect of raising an error.
+#' @return `x`, invisibly.
 #' @noRd
 check_numeric_vector <- function(x, name, allow_empty = TRUE) {
   if (!is.numeric(x)) {
@@ -23,9 +23,10 @@ check_numeric_vector <- function(x, name, allow_empty = TRUE) {
   }
   # range() settles all three cases in one C-level pass and allocates only its
   # own length-two result: NA and NaN propagate into it, and an infinite value
-  # becomes an infinite bound. `any(!is.finite(x))` needs two full-length
-  # allocations instead, which showed up as a sixth of the per-file runtime
-  # because the measurement loop revalidates the same traces for every mass bin.
+  # becomes an infinite bound. `any(!is.finite(x))` allocates two full-length
+  # vectors instead, which is worth avoiding here because the measurement loop
+  # validates a trace for every mass bin. The per-file checks elsewhere in the
+  # package run once and are not hot enough to be worth changing.
   if (length(x) > 0L) {
     bounds <- range(x)
     if (!is.finite(bounds[1L]) || !is.finite(bounds[2L])) {
@@ -40,13 +41,14 @@ check_numeric_vector <- function(x, name, allow_empty = TRUE) {
 
 #' Validate a single numeric value against optional bounds
 #'
-#' The mechanical core behind the scalar validators. `label` completes the
+#' The shared implementation behind the scalar validators. `label` completes the
 #' sentence "`name` must be ...", so each caller controls its own wording.
 #'
 #' @param x Value to check.
 #' @param name Argument name, used in the error message.
 #' @param label Description of the requirement, e.g. `"a single positive integer"`.
-#' @param min,max Inclusive bounds, unless `min_strict` is `TRUE`.
+#' @param min,max Bounds. `max` is inclusive; `min` is inclusive unless
+#'   `min_strict` is `TRUE`.
 #' @param min_strict Whether `min` is exclusive.
 #' @param integer Whether the value must be integer-valued.
 #' @param allow_infinite Whether an infinite value is acceptable.
@@ -216,12 +218,12 @@ check_list <- function(x, name) {
 
 #' Validate that two parallel lists have element-wise matching lengths
 #'
-#' The per-scan m/z and intensity lists must line up element by element, not
-#' just in overall length. The callers differ in how they check the outer
-#' length — [bin_peaks()] compares the two lists, [collect_zoi_masses()]
-#' compares both against the EIC — so only this inner check is shared.
+#' The per-scan m/z and intensity lists must line up element by element, not just
+#' in overall length. Only that inner check is shared: callers verify the outer
+#' length themselves, since they differ in what they compare it against.
 #'
-#' @param mz_list,int_list Parallel lists to compare.
+#' @param mz_list,int_list Parallel lists, already known to have the same outer
+#'   length.
 #' @param mz_name,int_name Argument names, used in the error message.
 #'
 #' @return `mz_list`, invisibly.

@@ -8,8 +8,7 @@
 #' with `half_window` points on each side of the centre; weights rise linearly
 #' towards the centre (`1, 2, ..., half_window + 1, ..., 2, 1`) and are
 #' renormalised at the two ends so that each position is averaged only over the
-#' points that actually exist. A `half_window` of `0` performs no smoothing and
-#' returns the input unchanged.
+#' points that actually exist. A `half_window` of `0` returns the input unchanged.
 #'
 #' @param intensity Numeric vector of intensities ordered by scan (retention
 #'   time). Must be finite: no `NA`, `NaN`, or infinite values.

@@ -36,13 +36,12 @@ returned with the mean and standard deviation of the noise floor it defines
 \details{
 If \code{block_size} or fewer non-zero values are present, the trace is too short
 to characterise a floor and the maximum is used as the cutoff. Setting
-\code{block_size = 1} evaluates the threshold at every value, the exact definition
-given in the Paramounter paper; the default of \code{10} evaluates every tenth
-value, matching the original implementation and running substantially faster
-on dense traces.
+\code{block_size = 1} evaluates the threshold at every value from the second
+onwards, since a standard deviation needs at least two, which is close to the
+definition given in the Paramounter paper. The default of \code{10} evaluates every
+tenth value, matching the original implementation.
 
-Only positive intensities are considered; zeros and any non-positive values
-are ignored.
+Only positive intensities are considered.
 }
 \examples{
 set.seed(1)

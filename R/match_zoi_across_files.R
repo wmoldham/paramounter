@@ -31,14 +31,11 @@
 #'   as `rt` (default `30`). Applied inclusively, like `mz_tol`.
 #' @param legacy_first_match Single `TRUE` or `FALSE`. When `FALSE` (the
 #'   default) the *nearest* candidate is taken, minimising the window-normalised
-#'   distance `sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)`, which is the
-#'   principled choice when a window contains several candidates. When `TRUE`
-#'   the original Paramounter behaviour is reproduced: the *first* candidate
-#'   within the window (by row order) is taken, which can pair an anchor with a
-#'   far candidate while a nearer one sits in the same window; use that only to
-#'   compare against the published values. Keep this in step with [pm_config]'s
-#'   `legacy`, which is what sets it when the pipeline is run through
-#'   [paramounter()].
+#'   distance `sqrt((dmz / mz_tol)^2 + (drt / rt_tol)^2)`. When `TRUE` it
+#'   reproduces the original, which takes the *first* candidate in the window by
+#'   row order; that can pair an anchor with a far candidate while a nearer one
+#'   sits in the same window. [paramounter()] sets this from [pm_config]'s
+#'   `legacy`.
 #'
 #' @return A named list with two numeric matrices, `mz` and `rt`, each with one
 #'   row per matched feature and one column per file (in the order of

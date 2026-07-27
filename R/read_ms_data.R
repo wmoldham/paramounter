@@ -8,9 +8,8 @@
 #' uses the Spectra package with its mzR backend, so any format mzR supports
 #' (mzML, mzXML, CDF) can be read.
 #'
-#' The analysis expects centroided spectra; profile data can be read but should
-#' be centroided first for meaningful results. One file is read per call; the
-#' orchestrator reads each of several files in turn.
+#' The analysis expects centroided spectra. Profile data can be read, but
+#' centroid it first or the measurements will not mean anything.
 #'
 #' @param file Single path to an existing mass-spectrometry data file.
 #' @param ms_level Single positive integer giving the MS level to extract
