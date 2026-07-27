@@ -10,7 +10,7 @@
 #' Unlike the original implementation, which rescans every peak for every bin,
 #' this assigns each peak to its bin once, so the cost grows with the number of
 #' peaks rather than with bins times scans. Reconstruct a single bin's per-scan
-#' traces with [assemble_bin_traces()].
+#' traces with `assemble_bin_traces()`.
 #'
 #' The bin edges are `seq(mz_range[1], mz_range[2], by = bin_width)`. A peak on
 #' or above the final edge falls outside every bin and is dropped. With the
@@ -32,12 +32,7 @@
 #'   parallel vectors `scan`, `mz`, and `intensity` holding that bin's peaks in
 #'   scan order.
 #'
-#' @examples
-#' mz <- list(c(100.01, 100.06, 100.12), c(100.02, 100.07), numeric(0))
-#' intensity <- list(c(10, 20, 30), c(40, 50), numeric(0))
-#' bin_peaks(mz, intensity, bin_width = 0.05, mz_range = c(100.00, 100.15))
-#'
-#' @export
+#' @noRd
 bin_peaks <- function(mz_list, int_list, bin_width = 0.05, mz_range = NULL) {
   check_list(mz_list, "mz_list")
   check_list(int_list, "int_list")

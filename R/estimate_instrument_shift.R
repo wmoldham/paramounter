@@ -2,7 +2,7 @@
 
 #' Estimate instrument mass and retention-time shift
 #'
-#' Summarises the matched features from [match_zoi_across_files()] into the two
+#' Summarises the matched features from `match_zoi_across_files()` into the two
 #' shift distributions that set the cross-file alignment tolerances: for each
 #' feature, the spread of its m/z across files (`max - min`) and the spread of
 #' its retention time across files. The maxima of these two distributions set the
@@ -11,7 +11,7 @@
 #' returns the untrimmed per-feature values.
 #'
 #' @param matched List of two numeric matrices `mz` and `rt`, as returned by
-#'   [match_zoi_across_files()]: one row per matched feature, one column per
+#'   `match_zoi_across_files()`: one row per matched feature, one column per
 #'   file, with matching dimensions and at least two columns. Values must be
 #'   finite.
 #'
@@ -20,14 +20,7 @@
 #'   m/z and of retention time respectively. Both are empty when `matched` has no
 #'   rows.
 #'
-#' @examples
-#' matched <- list(
-#'   mz = rbind(c(200.000, 200.003), c(300.000, 300.002)),
-#'   rt = rbind(c(500, 505), c(800, 803))
-#' )
-#' estimate_instrument_shift(matched)
-#'
-#' @export
+#' @noRd
 estimate_instrument_shift <- function(matched) {
   if (!is.list(matched) || !all(c("mz", "rt") %in% names(matched))) {
     stop(

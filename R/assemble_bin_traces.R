@@ -2,7 +2,7 @@
 
 #' Reconstruct one bin's per-scan traces
 #'
-#' Expands a single bin from [bin_peaks()] into the full-length per-scan
+#' Expands a single bin from `bin_peaks()` into the full-length per-scan
 #' structures the measurement functions consume: a list of the m/z values at
 #' each scan, the matching intensities, and the raw extracted-ion chromatogram
 #' (the mean intensity in the bin at each scan, zero where the bin is empty).
@@ -12,28 +12,19 @@
 #' full-length structures never accumulate across the whole m/z axis.
 #'
 #' @param bin A single bin element from the `bins` list returned by
-#'   [bin_peaks()]: a list with parallel numeric vectors `scan`, `mz`, and
+#'   `bin_peaks()`: a list with parallel numeric vectors `scan`, `mz`, and
 #'   `intensity`, where `scan` holds integer scan indices within `[1, n_scans]`
 #'   and `mz`, `intensity` are finite.
 #' @param n_scans Single positive integer giving the total number of scans, the
-#'   `n_scans` element returned by [bin_peaks()].
+#'   `n_scans` element returned by `bin_peaks()`.
 #'
 #' @return A list with `mz_list` and `int_list` (each length `n_scans`, the m/z
 #'   values and intensities in the bin at each scan) and `eic` (a length
 #'   `n_scans` numeric vector of the per-scan mean intensity, zero where the bin
-#'   is empty). The raw EIC is suitable for [smooth_intensity()], and `mz_list`
-#'   and `int_list` for [collect_zoi_masses()].
+#'   is empty). The raw EIC is suitable for `smooth_intensity()`, and `mz_list`
+#'   and `int_list` for `collect_zoi_masses()`.
 #'
-#' @examples
-#' binned <- bin_peaks(
-#'   list(c(100.01, 100.06), c(100.02, 100.07)),
-#'   list(c(10, 20), c(40, 50)),
-#'   bin_width = 0.05,
-#'   mz_range = c(100.00, 100.10)
-#' )
-#' assemble_bin_traces(binned$bins[[1]], binned$n_scans)
-#'
-#' @export
+#' @noRd
 assemble_bin_traces <- function(bin, n_scans) {
   if (!is.list(bin) || !all(c("scan", "mz", "intensity") %in% names(bin))) {
     stop(

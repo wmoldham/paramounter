@@ -3,7 +3,7 @@
 #' Measure universal parameters for a single zone of interest
 #'
 #' Converts the mass trace and scan boundaries of one zone of interest (as
-#' produced by [collect_zoi_masses()]) into the per-ZOI measurements that feed
+#' produced by `collect_zoi_masses()`) into the per-ZOI measurements that feed
 #' the universal parameters: relative mass tolerance (ppm), absolute mass
 #' tolerance (Da), peak width in seconds and in scans, signal-to-noise ratio,
 #' and peak height. Two validity filters are applied first, matching the
@@ -19,12 +19,12 @@
 #' infinite, as in the original.
 #'
 #' @param masses Numeric vector of m/z values gathered across the peak, the
-#'   `masses` element from [collect_zoi_masses()]. Must be finite.
+#'   `masses` element from `collect_zoi_masses()`. Must be finite.
 #' @param reference_mz Single positive reference m/z used to convert the mass
 #'   fluctuation to ppm.
 #' @param left_edge,right_edge Single integer scan indices of the leftmost and
 #'   rightmost points of the peak (`left_edge <= right_edge`), from
-#'   [collect_zoi_masses()].
+#'   `collect_zoi_masses()`.
 #' @param apex Single integer scan index of the apex, satisfying
 #'   `left_edge <= apex <= right_edge`.
 #' @param rtime Numeric vector of retention times per scan. Must be finite and
@@ -32,7 +32,7 @@
 #' @param apex_intensity Single non-negative intensity at the apex (the value of
 #'   the smoothed extracted-ion chromatogram at `apex`).
 #' @param noise_mean,noise_sd Single non-negative mean and standard deviation of
-#'   the noise floor, from [estimate_noise()].
+#'   the noise floor, from `estimate_noise()`.
 #' @param cutoff Single non-negative noise cutoff. When it is zero the
 #'   signal-to-noise ratio falls back to `apex_intensity`.
 #' @param sd_range Single positive multiplier on the mass standard deviation
@@ -51,23 +51,7 @@
 #'   `mz_diff` (absolute tolerance, Da), `width_seconds`, `width_scans`, `sn`,
 #'   and `height`; or `NULL` if the zone fails the mass-count or ppm filter.
 #'
-#' @examples
-#' rtime <- seq(10, 28, by = 2)
-#' masses <- c(220.0098, 220.0100, 220.0102, 220.0101, 220.0099)
-#' zoi_features(
-#'   masses,
-#'   reference_mz = 220.0100,
-#'   left_edge = 2,
-#'   right_edge = 6,
-#'   apex = 4,
-#'   rtime = rtime,
-#'   apex_intensity = 5000,
-#'   noise_mean = 100,
-#'   noise_sd = 30,
-#'   cutoff = 120
-#' )
-#'
-#' @export
+#' @noRd
 zoi_features <- function(
     masses,
     reference_mz,

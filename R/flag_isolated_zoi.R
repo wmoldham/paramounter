@@ -12,12 +12,12 @@
 #' `min_gap`. A bin containing a single zone always qualifies.
 #'
 #' The neighbour set is every zone detected in the bin, including zones that
-#' later fail the mass-count or ppm filters in [zoi_features()]: a nearby peak
+#' later fail the mass-count or ppm filters in `zoi_features()`: a nearby peak
 #' interferes with matching whether or not it yields a usable measurement. Pass
 #' every zone detected in the bin, then apply the measurement filters afterwards.
 #'
 #' @param apex_rt Numeric vector of apex retention times for the zones in one
-#'   mass bin, in non-decreasing order. Must be finite. [find_zoi()] returns scan
+#'   mass bin, in non-decreasing order. Must be finite. `find_zoi()` returns scan
 #'   indices rather than times, so index your retention times by its `apex`
 #'   column; its zones are already ordered by scan.
 #' @param min_gap Single non-negative number giving the minimum separation, in
@@ -33,12 +33,7 @@
 #' @return A logical vector the same length as `apex_rt`, `TRUE` where the zone
 #'   is isolated.
 #'
-#' @examples
-#' # the middle zone sits 10 s after its neighbour but 690 s before the next
-#' flag_isolated_zoi(c(100, 110, 800))
-#' flag_isolated_zoi(c(100, 110, 800), legacy_isolation = TRUE)
-#'
-#' @export
+#' @noRd
 flag_isolated_zoi <- function(
     apex_rt,
     min_gap = 300,

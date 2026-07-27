@@ -22,7 +22,7 @@
 #' @param zoi_list List of at least two data frames, one per file, each with
 #'   numeric, finite `mz` and `rt` columns giving the reference m/z and apex
 #'   retention time of that file's clean zones of interest, meaning the ones
-#'   [flag_isolated_zoi()] marked. The first element is the anchor. Elements may
+#'   `flag_isolated_zoi()` marked. The first element is the anchor. Elements may
 #'   be named to label the output columns.
 #' @param mz_tol Single positive m/z half-window, in the same units as `mz`
 #'   (default `0.015`). A candidate matches when its m/z is within `mz_tol` of
@@ -43,12 +43,7 @@
 #'   holds the anchor values. When nothing matches across all files, both
 #'   matrices have zero rows.
 #'
-#' @examples
-#' file1 <- data.frame(mz = c(200.000, 300.000), rt = c(500, 800))
-#' file2 <- data.frame(mz = c(200.003, 300.002), rt = c(505, 803))
-#' match_zoi_across_files(list(file1, file2))
-#'
-#' @export
+#' @noRd
 match_zoi_across_files <- function(
     zoi_list,
     mz_tol = 0.015,

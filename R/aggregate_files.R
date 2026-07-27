@@ -65,7 +65,7 @@ compute_ppm_cutoff <- function(ppm, trim, quantile) {
 #'
 #' Given two or more files it also derives each file's clean zones, meaning those
 #' that survived the cutoff and were flagged isolated, and runs
-#' [match_zoi_across_files()] then [estimate_instrument_shift()] to obtain the
+#' `match_zoi_across_files()` then `estimate_instrument_shift()` to obtain the
 #' mass- and retention-time-shift distributions.
 #'
 #' @param per_file List with one element per file, each the list returned by the

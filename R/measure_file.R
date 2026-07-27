@@ -52,11 +52,11 @@ assemble_zoi <- function(rows) {
 #' the mass-count bounds is returned, so its ppm value can enter the pooled
 #' distribution the cutoff is derived from; the cutoff is applied once, across
 #' all files, during aggregation. Each returned zone carries an `isolated` flag
-#' from [flag_isolated_zoi()] marking whether it can seed cross-file shift
+#' from `flag_isolated_zoi()` marking whether it can seed cross-file shift
 #' estimation.
 #'
 #' The mass-trace outlier settings, `min_points` and `fence` of
-#' [collect_zoi_masses()], are left at their defaults and are not exposed on
+#' `collect_zoi_masses()`, are left at their defaults and are not exposed on
 #' [pm_config].
 #'
 #' @param mz List with one numeric vector of m/z values per scan, as in the `mz`

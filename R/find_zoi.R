@@ -14,10 +14,10 @@
 #' trace into the neighbouring scans can still gather enough values to measure.
 #'
 #' @param intensity Numeric vector of intensities ordered by scan, typically the
-#'   smoothed extracted-ion chromatogram from [smooth_intensity()]. Must be
+#'   smoothed extracted-ion chromatogram from `smooth_intensity()`. Must be
 #'   finite: no `NA`, `NaN`, or infinite values.
 #' @param cutoff Single non-negative number giving the noise cutoff, typically
-#'   the `cutoff` element returned by [estimate_noise()]. A scan is included when
+#'   the `cutoff` element returned by `estimate_noise()`. A scan is included when
 #'   its intensity is strictly greater than this value.
 #'
 #' @return A data frame with one row per zone of interest and integer columns
@@ -25,10 +25,7 @@
 #'   index of the highest point in the run). A trace with no points above the
 #'   cutoff returns a zero-row data frame.
 #'
-#' @examples
-#' find_zoi(c(2, 1, 50, 80, 40, 1, 90, 30, 1, 100), cutoff = 10)
-#'
-#' @export
+#' @noRd
 find_zoi <- function(intensity, cutoff) {
   check_numeric_vector(intensity, "intensity")
   check_nonneg_number(cutoff, "cutoff")
@@ -42,7 +39,7 @@ find_zoi <- function(intensity, cutoff) {
 
 #' Locate zones of interest as bare index vectors
 #'
-#' The unvalidated core of [find_zoi()]. The measurement loop calls this once
+#' The unvalidated core of `find_zoi()`. The measurement loop calls this once
 #' per mass bin, tens of thousands of times per file, and only ever reads the
 #' index vectors. So it skips the argument checks, the caller having already
 #' validated the trace, and the `data.frame()` wrapper that the loop would

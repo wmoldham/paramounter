@@ -22,7 +22,7 @@
 #'
 #' @param intensity Numeric vector of intensities for a single mass bin,
 #'   typically the smoothed extracted-ion chromatogram from
-#'   [smooth_intensity()]. Must be finite: no `NA`, `NaN`, or infinite values.
+#'   `smooth_intensity()`. Must be finite: no `NA`, `NaN`, or infinite values.
 #' @param block_size Single positive integer giving the block width for the
 #'   rank-based scan (default `10`).
 #' @param sd_factor Single non-negative number multiplying the standard
@@ -33,12 +33,7 @@
 #'   `noise_sd` (standard deviation of the noise floor at the cutoff). A trace
 #'   with no positive values returns zeros for all three.
 #'
-#' @examples
-#' set.seed(1)
-#' eic <- c(rep(0, 5), rlnorm(40, 6, 0.5), 1e5, 8e4)
-#' estimate_noise(eic)
-#'
-#' @export
+#' @noRd
 estimate_noise <- function(intensity, block_size = 10L, sd_factor = 3) {
   check_numeric_vector(intensity, "intensity")
   check_count(block_size, "block_size")

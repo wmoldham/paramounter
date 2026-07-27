@@ -162,8 +162,12 @@ hands the results to `aggregate_files()`.
   with two or more files — runs `match_zoi_across_files()` → `estimate_instrument_shift()`
   to get the mass- and RT-shift distributions. Returns a `universal_parameters`.
 
-Each step function is separately exported, documented, and unit-tested, so they can be
-composed by hand as well as by the orchestrator.
+Each step function is separately documented and unit-tested, but **none of them is
+exported**. They do not compose into the pipeline by hand: reproducing `measure_file()`
+needs its double loop, its two skip conditions, the `reference_mz` recipe, and the
+deliberate `ppm_cutoff = Inf`, and reproducing `aggregate_files()` needs
+`compute_ppm_cutoff()` and `trim_distribution()` as well. The package used to claim
+otherwise; it was never true.
 
 Deliberate division of labour: `measure_file()` does **not** apply the ppm cutoff — every
 zone clearing the mass-count bounds is returned so its ppm value can enter the pooled
@@ -249,9 +253,20 @@ Two asymmetries in that table worth knowing:
 - **Resolved original inconsistencies**: the demo `XCMS.R` used `integrate = 2` and
   `snthresh = 1.065`, but part 2's computed output uses `integrate = 1` and floors S/N
   at 3. We follow part 2 — the tool's actual output — not the demo script.
-- **Export policy**: internal orchestration (`measure_file`, `aggregate_files`, the
-  `*_values`/`*_table` helpers, `point_estimates`) is `@noRd`; the building-block step
-  functions and user-facing functions are `@export`.
+- **Export policy**: exactly seven things are `@export`ed — `paramounter()`, the
+  `pm_config` and `universal_parameters` classes, `read_ms_data()`, and `to_xcms()`,
+  `to_msdial()`, `to_mzmine()`. That is precisely what the README teaches. Everything
+  else, the ten measurement steps included, is `@noRd`.
+
+  Two consequences to keep in mind when editing. First, an internal function has no Rd
+  topic, so **`[fn()]` links to one break `document()`** even from another `@noRd` block
+  — write `` `fn()` `` instead, and reserve `[fn()]` for the seven. Second, internals
+  carry no `@examples`, because an example that `R CMD check` never runs goes stale
+  silently; their coverage lives in `tests/` instead.
+
+  Widening the surface again has a cost worth remembering: `find_zoi()`'s `data.frame`
+  return sat on the hot path, and while it was exported the only way forward was to add
+  `zoi_indices()` beside it rather than change it.
 
 ## S7 gotchas (already handled — don't regress)
 

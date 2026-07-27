@@ -49,11 +49,12 @@ First working version. The package is not yet released; it installs from GitHub 
   (in seconds and in scans), signal-to-noise ratio, peak height, and — given two or more
   files — instrument mass and retention-time shift.
 
-* Every step of the measurement chain is exported, documented and separately testable, so
-  the pipeline can be composed by hand as well as run through `paramounter()`:
-  `bin_peaks()`, `assemble_bin_traces()`, `smooth_intensity()`, `estimate_noise()`,
-  `find_zoi()`, `flag_isolated_zoi()`, `collect_zoi_masses()`, `zoi_features()`,
-  `match_zoi_across_files()`, and `estimate_instrument_shift()`.
+* The public interface is deliberately small: `paramounter()`, the `pm_config()` and
+  `universal_parameters` classes, `read_ms_data()`, and the three `to_*()` translators.
+  Every step of the measurement chain is internal. They are documented and separately
+  tested, but they are implementation, not interface — most take intermediate structures
+  that only another internal function produces, and they do not compose into the pipeline
+  without reimplementing the two orchestrators around them.
 
 * `pm_config()` collects every tunable setting in one validated object, defaulting to the
   published Paramounter values. `universal_parameters` carries the measured

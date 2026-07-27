@@ -18,11 +18,7 @@
 #'
 #' @return A numeric vector the same length as `intensity`.
 #'
-#' @examples
-#' smooth_intensity(c(10, 100, 40, 80, 20), half_window = 1)
-#' smooth_intensity(c(10, 100, 40, 80, 20), half_window = 0)
-#'
-#' @export
+#' @noRd
 smooth_intensity <- function(intensity, half_window = 0L) {
   check_numeric_vector(intensity, "intensity")
   check_nonneg_integer(half_window, "half_window")
