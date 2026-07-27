@@ -1,6 +1,6 @@
 Package: paramounter
 Title: Measure LC-MS Processing Parameters Directly from Your Data
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
     person("William", "Oldham", , "wm.oldham@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3029-4866")),
@@ -17,6 +17,8 @@ Description: Measures universal liquid chromatography-mass spectrometry
     files is enough. Implements the method of Guo and Huan (2022)
     <doi:10.1021/acs.analchem.1c04758>.
 License: MIT + file LICENSE
+URL: https://github.com/wmoldham/paramounter
+BugReports: https://github.com/wmoldham/paramounter/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
