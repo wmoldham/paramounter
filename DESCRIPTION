@@ -37,6 +37,7 @@ Collate:
     'aggregate_files.R'
     'assemble_bin_traces.R'
     'bin_peaks.R'
+    'check_estimates.R'
     'collect_zoi_masses.R'
     'estimate_instrument_shift.R'
     'estimate_noise.R'

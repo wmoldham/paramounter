@@ -18,6 +18,7 @@ pm_config(
   match_mz_tol = 0.015,
   match_rt_tol = 30,
   trim = 0.97,
+  tolerance_quantile = 0.95,
   legacy = FALSE
 )
 }
@@ -57,9 +58,27 @@ isolated (default \code{300}, five minutes).}
 matching zones across files: m/z in Da, retention time in seconds (defaults
 \code{0.015} and \code{30}).}
 
-\item{trim}{Single number in \verb{(0, 1]}. The fraction of each distribution kept.
-The rest is dropped from one end, whichever is opposite the statistic that
-quantity is summarised by (default \code{0.97}).}
+\item{trim}{Single number in \verb{(0, 1]}. The fraction of each \emph{threshold}
+distribution kept — \code{noise}, \code{width_scans}, \code{sn} and \code{height}. The rest is
+dropped from one end, whichever is opposite the statistic that quantity is
+summarised by (default \code{0.97}). Under \code{legacy = TRUE} this applies to every
+distribution, as in the original.}
+
+\item{tolerance_quantile}{Single number in \verb{(0, 1]}. The position taken from
+each \emph{tolerance} distribution — \code{ppm}, \code{mz_diff}, and the upper peak-width
+bound (default \code{0.95}). Ignored under \code{legacy = TRUE}.
+
+The split matters because the two kinds of parameter fail differently. A
+loose threshold only lets more candidates through, and downstream filtering
+removes what does not reproduce. A loose tolerance changes how peaks are
+built, which cannot be undone later: on a high-dynamic-range Orbitrap
+dataset an over-wide \code{ppm} doubled the chromatographic peaks and returned
+\emph{fewer} features. Lower this when \code{\link[=check_estimates]{check_estimates()}} shows a tolerance
+estimate sitting far above the bulk of its distribution.
+
+This is taken directly from the untrimmed distribution rather than stacked
+on \code{trim}. The two would otherwise compose: trimming to \code{0.97} and then
+taking \code{0.95} of what remains lands at \code{0.9215}, not \code{0.95}.}
 
 \item{legacy}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default) the
 pipeline applies its corrections to the original method. When \code{TRUE} it

@@ -8,13 +8,23 @@ full_dists <- function(...) utils::modifyList(
 
 test_that("xcms_values reproduces the original point estimates", {
   orig_xcms_values <- function(d, legacy = TRUE) {
-    maxppm <- ceiling(max(d$ppm)); minnoise <- floor(min(d$noise))
+    # tolerance quantities: the maximum under legacy, otherwise the 0.95 quantile
+    up <- function(x) if (legacy) max(x) else stats::quantile(x, 0.95, names = FALSE)
+    maxppm <- ceiling(up(d$ppm)); minnoise <- floor(min(d$noise))
     W <- mean(d$width_seconds, trim = 0.05, na.rm = TRUE); H <- mean(d$height, trim = 0.05, na.rm = TRUE); ratio <- H / W
-    lo <- min(d$width_seconds); hi <- max(d$width_seconds)
-    # the original zeroes the lower bound in the wide branch; only legacy keeps that
-    wide <- hi > 35 & ratio > 515
-    minpeakwidth <- if (wide && legacy) 0 else ceiling(lo) + 4
-    maxpeakwidth <- if (wide) (ceiling(hi) + 7) / 2 else ceiling(hi) + 5
+    # the wide-peak branch exists only under legacy; otherwise the quantile is
+    # already robust to a few unusually wide peaks and there is no branch
+    lo <- ceiling(min(d$width_seconds)) + 4
+    if (legacy) {
+      hi <- max(d$width_seconds)
+      if (hi > 35 & ratio > 515) {
+        minpeakwidth <- 0; maxpeakwidth <- (ceiling(hi) + 7) / 2
+      } else {
+        minpeakwidth <- lo; maxpeakwidth <- ceiling(hi) + 5
+      }
+    } else {
+      minpeakwidth <- lo; maxpeakwidth <- ceiling(up(d$width_seconds)) + 5
+    }
     minpeakscan <- floor(min(d$width_scans)); minSN <- min(d$sn); if (minSN < 3) minSN <- 3
     bw <- 5; if (!legacy && length(d$rt_shift) > 0) bw <- max(d$rt_shift)
     list(ppm = maxppm, min_pw = minpeakwidth, max_pw = maxpeakwidth, snthresh = minSN,
@@ -43,8 +53,8 @@ test_that("xcms_values reproduces the original point estimates", {
   }
 })
 
-test_that("the wide-peak branch keeps a usable lower bound unless legacy asks for zero", {
-  # width_seconds spanning past 35 s with large heights takes the wide branch
+test_that("the wide-peak branch and its magic constants apply only under legacy", {
+  # widths past 35 s with large heights: the legacy branch fires here
   d <- full_dists(
     ppm = runif(80, 1, 8), noise = runif(80, 100, 5000),
     width_seconds = runif(80, 5, 60), width_scans = sample(3:40, 80, TRUE),
@@ -59,14 +69,39 @@ test_that("the wide-peak branch keeps a usable lower bound unless legacy asks fo
   legacy <- xcms_values(make(TRUE))$peakwidth
   corrected <- xcms_values(make(FALSE))$peakwidth
 
-  # the branch fired, so the halved upper bound is shared
-  expect_identical(legacy[2], corrected[2])
-  expect_lt(legacy[2], ceiling(max(d$width_seconds)) + 5)
-
-  # only the lower bound differs, and only legacy is degenerate
+  # legacy: the branch fires, zeroing the lower bound and halving the upper
   expect_identical(legacy[1], 0)
+  expect_identical(legacy[2], (ceiling(max(d$width_seconds)) + 7) / 2)
+
+  # corrected: no branch, so a data-driven lower bound and the quantile above
   expect_identical(corrected[1], ceiling(min(d$width_seconds)) + 4)
   expect_gt(corrected[1], 0)
+  expect_identical(
+    corrected[2],
+    ceiling(stats::quantile(d$width_seconds, 0.95, names = FALSE)) + 5
+  )
+})
+
+test_that("the corrected peak width does not depend on the 515 ratio constant", {
+  # the ratio is height-over-width, so scaling every height moves it by the same
+  # factor -- crossing 515 in either direction. Under legacy that flips the
+  # branch; the corrected path must not notice at all.
+  base <- full_dists(
+    ppm = runif(60, 1, 8), noise = runif(60, 100, 5000),
+    width_seconds = runif(60, 5, 60), width_scans = sample(3:40, 60, TRUE),
+    sn = runif(60, 3, 50), height = runif(60, 1e4, 1e6),
+    mass_shift = runif(10, 0.001, 0.01), rt_shift = runif(10, 1, 30)
+  )
+  scaled <- base
+  scaled$height <- base$height / 1e4 # ratio now far below 515
+
+  pw <- function(d, legacy) {
+    xcms_values(universal_parameters(
+      distributions = d, files = c("a", "b"), config = pm_config(legacy = legacy)
+    ))$peakwidth
+  }
+  expect_false(identical(pw(base, TRUE), pw(scaled, TRUE)))
+  expect_identical(pw(base, FALSE), pw(scaled, FALSE))
 })
 
 test_that("xcms_values validates, floors bw under legacy, and honours sample_groups", {
@@ -104,7 +139,8 @@ test_that("to_xcms builds the xcms parameter objects", {
   expect_s4_class(xp$chrom_peaks, "CentWaveParam")
   expect_s4_class(xp$group, "PeakDensityParam")
   expect_s4_class(xp$retention, "ObiwarpParam")
-  expect_equal(xp$chrom_peaks@ppm, ceiling(max(d$ppm)))
+  # legacy = FALSE, so ppm is the tolerance quantile rather than the maximum
+  expect_equal(xp$chrom_peaks@ppm, ceiling(stats::quantile(d$ppm, 0.95, names = FALSE)))
 })
 
 test_that("to_xcms warns and falls back when shifts are unavailable", {

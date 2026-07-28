@@ -7,7 +7,9 @@ full_dists <- function(...) utils::modifyList(
 
 test_that("to_msdial reproduces the original MS-DIAL values", {
   orig <- function(d, multi) {
-    mzd <- ceiling(max(d$mz_diff) * 100) / 100; ph <- floor(min(d$height)); ps <- floor(min(d$width_scans))
+    # default config, so mz_diff is a tolerance and takes the 0.95 quantile
+    mzd <- ceiling(stats::quantile(d$mz_diff, 0.95, names = FALSE) * 100) / 100
+    ph <- floor(min(d$height)); ps <- floor(min(d$width_scans))
     if (multi) round(c(mzd, ph, mzd, ps, max(d$mass_shift), max(d$rt_shift) / 60), 3) else round(c(mzd, ph, mzd, ps), 3)
   }
   set.seed(11)

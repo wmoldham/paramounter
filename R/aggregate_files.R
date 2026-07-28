@@ -108,11 +108,25 @@ aggregate_files <- function(per_file, files, config = pm_config()) {
   kept <- zoi_pooled[zoi_pooled$ppm < cutoff, , drop = FALSE]
   trim <- config@trim
 
+  # The tolerance distributions are kept whole under the corrected behaviour, so
+  # that `tolerance_quantile` is taken from the measured values rather than from
+  # an already-trimmed prefix of them. Trimming first would compose with the
+  # quantile: 0.97 then 0.95 lands at 0.9215. It also means `summary` and
+  # `plot()` show the real tail, which is what makes check_estimates() useful.
+  # Under legacy every distribution is trimmed, exactly as the original does.
   distributions <- empty_distributions()
   distributions$ppm <- as.numeric(kept$ppm)
-  distributions$mz_diff <- trim_distribution(kept$mz_diff, trim, "high")
+  distributions$mz_diff <- if (config@legacy) {
+    trim_distribution(kept$mz_diff, trim, "high")
+  } else {
+    as.numeric(kept$mz_diff)
+  }
   distributions$noise <- trim_distribution(noise_pooled, trim, "high")
-  distributions$width_seconds <- trim_distribution(kept$width_seconds, trim, "high")
+  distributions$width_seconds <- if (config@legacy) {
+    trim_distribution(kept$width_seconds, trim, "high")
+  } else {
+    as.numeric(kept$width_seconds)
+  }
   distributions$width_scans <- as.numeric(trim_distribution(kept$width_scans, trim, "high"))
   distributions$sn <- trim_distribution(kept$sn, trim, "low")
   distributions$height <- trim_distribution(kept$height, trim, "low")

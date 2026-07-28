@@ -57,9 +57,26 @@ checked <- function(check, name) {
 #' @param match_mz_tol,match_rt_tol Single positive numbers. The half-windows for
 #'   matching zones across files: m/z in Da, retention time in seconds (defaults
 #'   `0.015` and `30`).
-#' @param trim Single number in `(0, 1]`. The fraction of each distribution kept.
-#'   The rest is dropped from one end, whichever is opposite the statistic that
-#'   quantity is summarised by (default `0.97`).
+#' @param trim Single number in `(0, 1]`. The fraction of each *threshold*
+#'   distribution kept — `noise`, `width_scans`, `sn` and `height`. The rest is
+#'   dropped from one end, whichever is opposite the statistic that quantity is
+#'   summarised by (default `0.97`). Under `legacy = TRUE` this applies to every
+#'   distribution, as in the original.
+#' @param tolerance_quantile Single number in `(0, 1]`. The position taken from
+#'   each *tolerance* distribution — `ppm`, `mz_diff`, and the upper peak-width
+#'   bound (default `0.95`). Ignored under `legacy = TRUE`.
+#'
+#'   The split matters because the two kinds of parameter fail differently. A
+#'   loose threshold only lets more candidates through, and downstream filtering
+#'   removes what does not reproduce. A loose tolerance changes how peaks are
+#'   built, which cannot be undone later: on a high-dynamic-range Orbitrap
+#'   dataset an over-wide `ppm` doubled the chromatographic peaks and returned
+#'   *fewer* features. Lower this when [check_estimates()] shows a tolerance
+#'   estimate sitting far above the bulk of its distribution.
+#'
+#'   This is taken directly from the untrimmed distribution rather than stacked
+#'   on `trim`. The two would otherwise compose: trimming to `0.97` and then
+#'   taking `0.95` of what remains lands at `0.9215`, not `0.95`.
 #' @param legacy Single `TRUE` or `FALSE`. When `FALSE` (the default) the
 #'   pipeline applies its corrections to the original method. When `TRUE` it
 #'   reproduces the original end to end, setting the scan-count, isolation,
@@ -151,6 +168,11 @@ pm_config <- new_class(
       class_any,
       default = 0.97,
       validator = checked(check_unit_fraction, "trim")
+    ),
+    tolerance_quantile = new_property(
+      class_any,
+      default = 0.95,
+      validator = checked(check_unit_fraction, "tolerance_quantile")
     ),
     legacy = new_property(
       class_any,

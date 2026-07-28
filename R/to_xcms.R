@@ -12,7 +12,11 @@
 #' @return A named list of the computed values.
 #' @noRd
 xcms_values <- function(params, sample_groups = NULL) {
-  est <- point_estimates(params@distributions, params@config@legacy)
+  est <- point_estimates(
+    params@distributions,
+    params@config@legacy,
+    params@config@tolerance_quantile
+  )
   require_estimates(
     est,
     c(
