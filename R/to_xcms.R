@@ -72,9 +72,15 @@ xcms_values <- function(params, sample_groups = NULL) {
 #' and also when several files share no zone that matched across all of them.
 #'
 #' @param params A [universal_parameters] object from [paramounter()].
-#' @param sample_groups Optional vector assigning each file to a sample group,
-#'   one entry per file, passed to the `PeakDensityParam`. Defaults to putting
-#'   every file in one group.
+#' @param sample_groups Optional vector assigning each file of the **experiment
+#'   you are about to process** to a sample group, one entry per file, passed to
+#'   the `PeakDensityParam`. This is normally longer than `params@files`, because
+#'   the point of measuring a handful of representative injections is that you do
+#'   not have to measure all of them; its length is not checked against them.
+#'
+#'   The default puts every *measured* file in one group, which is only right
+#'   when you are processing exactly the files you measured. Set it explicitly
+#'   otherwise.
 #'
 #' @return A named list with `chrom_peaks` (a `CentWaveParam`), `group` (a
 #'   `PeakDensityParam`), and `retention` (an `ObiwarpParam`), ready for
@@ -92,8 +98,11 @@ xcms_values <- function(params, sample_groups = NULL) {
 #' @export
 to_xcms <- function(params, sample_groups = NULL) {
   check_s7(params, universal_parameters, "params")
-  if (!is.null(sample_groups) && length(sample_groups) != length(params@files)) {
-    stop("`sample_groups` must have one entry per file.", call. = FALSE)
+  # deliberately not checked against length(params@files): the files measured and
+  # the files to be processed are different sets, which is the point of measuring
+  # a few representative injections
+  if (!is.null(sample_groups) && length(sample_groups) == 0L) {
+    stop("`sample_groups` must have at least one entry.", call. = FALSE)
   }
   if (length(params@distributions$mass_shift) == 0L) {
     warning(

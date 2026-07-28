@@ -125,7 +125,20 @@ test_that("to_xcms validates its inputs", {
                   mass_shift = runif(5, 0.001, 0.01), rt_shift = runif(5, 1, 30))
   up <- universal_parameters(distributions = d, files = c("a", "b"))
   expect_error(to_xcms("x"), "universal_parameters object")
-  expect_error(to_xcms(up, sample_groups = "A"), "one entry per file")
+  expect_error(to_xcms(up, sample_groups = character(0)), "at least one entry")
+})
+
+test_that("sample_groups may describe more files than were measured", {
+  skip_if_not_installed("xcms")
+  # the intended workflow: measure a few representative injections, process many
+  d <- full_dists(ppm = runif(20, 1, 8), noise = runif(20, 100, 5000), width_seconds = runif(20, 5, 30),
+                  width_scans = sample(3:20, 20, TRUE), sn = runif(20, 3, 50), height = runif(20, 1e4, 1e6),
+                  mass_shift = runif(5, 0.001, 0.01), rt_shift = runif(5, 1, 30))
+  up <- universal_parameters(distributions = d, files = c("a", "b"))
+  groups <- rep(c("QC", "sample"), length.out = 216)
+  xp <- to_xcms(up, sample_groups = groups)
+  expect_identical(xp$group@sampleGroups, groups)
+  expect_length(xp$group@sampleGroups, 216L)
 })
 
 test_that("to_xcms builds the xcms parameter objects", {

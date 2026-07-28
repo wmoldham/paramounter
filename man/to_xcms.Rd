@@ -9,9 +9,15 @@ to_xcms(params, sample_groups = NULL)
 \arguments{
 \item{params}{A \link{universal_parameters} object from \code{\link[=paramounter]{paramounter()}}.}
 
-\item{sample_groups}{Optional vector assigning each file to a sample group,
-one entry per file, passed to the \code{PeakDensityParam}. Defaults to putting
-every file in one group.}
+\item{sample_groups}{Optional vector assigning each file of the \strong{experiment
+you are about to process} to a sample group, one entry per file, passed to
+the \code{PeakDensityParam}. This is normally longer than \code{params@files}, because
+the point of measuring a handful of representative injections is that you do
+not have to measure all of them; its length is not checked against them.
+
+The default puts every \emph{measured} file in one group, which is only right
+when you are processing exactly the files you measured. Set it explicitly
+otherwise.}
 }
 \value{
 A named list with \code{chrom_peaks} (a \code{CentWaveParam}), \code{group} (a
