@@ -10,7 +10,11 @@ test_that("to_mzmine reproduces the original MZmine values", {
     mn <- floor(min(d$noise)); ps <- floor(min(d$width_scans)); ph <- floor(min(d$height)); mp <- ceiling(max(d$ppm))
     W <- mean(d$width_seconds, trim = 0.05); H <- mean(d$height, trim = 0.05); ratio <- H / W
     lo <- min(d$width_seconds); hi <- max(d$width_seconds)
-    if (hi > 35 & ratio > 515) { lo <- 0; hi <- (ceiling(hi) + 7) / 2 } else { lo <- ceiling(lo) + 4; hi <- ceiling(hi) + 5 }
+    # these tests build universal_parameters with the default config, so legacy is
+    # FALSE and the lower bound stays data-driven in both branches
+    wide <- hi > 35 & ratio > 515
+    lo <- ceiling(lo) + 4
+    hi <- if (wide) (ceiling(hi) + 7) / 2 else ceiling(hi) + 5
     if (multi) round(c(mn, ps, mn, ph, mp, lo / 60, hi / 60, max(d$mass_shift), max(d$rt_shift) / 60), 3)
     else round(c(mn, ps, mn, ph, mp, lo / 60, hi / 60), 3)
   }

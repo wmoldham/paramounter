@@ -10,9 +10,11 @@ test_that("xcms_values reproduces the original point estimates", {
   orig_xcms_values <- function(d, legacy = TRUE) {
     maxppm <- ceiling(max(d$ppm)); minnoise <- floor(min(d$noise))
     W <- mean(d$width_seconds, trim = 0.05, na.rm = TRUE); H <- mean(d$height, trim = 0.05, na.rm = TRUE); ratio <- H / W
-    minpeakwidth <- min(d$width_seconds); maxpeakwidth <- max(d$width_seconds)
-    if (maxpeakwidth > 35 & ratio > 515) { minpeakwidth <- 0; maxpeakwidth <- (ceiling(maxpeakwidth) + 7) / 2 }
-    else { minpeakwidth <- ceiling(minpeakwidth) + 4; maxpeakwidth <- ceiling(maxpeakwidth) + 5 }
+    lo <- min(d$width_seconds); hi <- max(d$width_seconds)
+    # the original zeroes the lower bound in the wide branch; only legacy keeps that
+    wide <- hi > 35 & ratio > 515
+    minpeakwidth <- if (wide && legacy) 0 else ceiling(lo) + 4
+    maxpeakwidth <- if (wide) (ceiling(hi) + 7) / 2 else ceiling(hi) + 5
     minpeakscan <- floor(min(d$width_scans)); minSN <- min(d$sn); if (minSN < 3) minSN <- 3
     bw <- 5; if (!legacy && length(d$rt_shift) > 0) bw <- max(d$rt_shift)
     list(ppm = maxppm, min_pw = minpeakwidth, max_pw = maxpeakwidth, snthresh = minSN,
@@ -39,6 +41,32 @@ test_that("xcms_values reproduces the original point estimates", {
     expect_equal(v$bw, a$bw)
     expect_equal(v$binSize, a$binSize)
   }
+})
+
+test_that("the wide-peak branch keeps a usable lower bound unless legacy asks for zero", {
+  # width_seconds spanning past 35 s with large heights takes the wide branch
+  d <- full_dists(
+    ppm = runif(80, 1, 8), noise = runif(80, 100, 5000),
+    width_seconds = runif(80, 5, 60), width_scans = sample(3:40, 80, TRUE),
+    sn = runif(80, 3, 50), height = runif(80, 1e4, 1e6),
+    mass_shift = runif(10, 0.001, 0.01), rt_shift = runif(10, 1, 30)
+  )
+  make <- function(legacy) {
+    universal_parameters(
+      distributions = d, files = c("a", "b"), config = pm_config(legacy = legacy)
+    )
+  }
+  legacy <- xcms_values(make(TRUE))$peakwidth
+  corrected <- xcms_values(make(FALSE))$peakwidth
+
+  # the branch fired, so the halved upper bound is shared
+  expect_identical(legacy[2], corrected[2])
+  expect_lt(legacy[2], ceiling(max(d$width_seconds)) + 5)
+
+  # only the lower bound differs, and only legacy is degenerate
+  expect_identical(legacy[1], 0)
+  expect_identical(corrected[1], ceiling(min(d$width_seconds)) + 4)
+  expect_gt(corrected[1], 0)
 })
 
 test_that("xcms_values validates, floors bw under legacy, and honours sample_groups", {

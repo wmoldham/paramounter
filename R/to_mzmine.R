@@ -2,7 +2,7 @@
 
 #' @noRd
 mzmine_table <- function(params) {
-  est <- point_estimates(params@distributions)
+  est <- point_estimates(params@distributions, params@config@legacy)
   require_estimates(
     est,
     c(
