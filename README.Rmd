@@ -286,11 +286,50 @@ pm_config(
   isolation_gap = 300,       # seconds of separation required by step 9
   match_mz_tol = 0.015,      # matching window used by step 12
   match_rt_tol = 30,
+  trim = 0.97,               # kept from each threshold distribution
+  tolerance_quantile = 0.95, # taken from each tolerance distribution
   legacy = FALSE
 )
 ```
 
-`legacy` controls whether the package applies four corrections to the original
+### Checking the parameters before you use them
+
+Every parameter is drawn from one end of a measured distribution. When the
+distribution is tight, that value is representative. When it has a long tail, the
+value is set by the worst-measured peaks in the file rather than by what the
+instrument can do.
+
+`check_estimates()` shows the gap:
+
+```r
+check_estimates(params)
+#>        quantity      kind  estimate    median ratio
+#> 1           ppm tolerance 2.000e+01 5.664e+00  3.53
+#> 2       mz_diff tolerance 1.000e-02 1.523e-03  6.56
+#> 3 width_seconds tolerance 4.100e+01 5.851e+00  7.01
+#> 6         noise threshold 2.980e+02 4.640e+02  1.56
+#> 9            sn threshold 3.000e+00 1.329e+01  4.43
+```
+
+`ratio` is how many times further from the median the parameter sits. Read the
+`kind` column before acting on a large one, because the two kinds fail
+differently.
+
+A **tolerance** decides how a peak is built. Setting it too loosely cannot be
+undone later. On an Orbitrap dataset, a `ppm` of 46 instead of 10 found twice as
+many chromatographic peaks and ended up with *fewer* features, because the extra
+detections did not survive grouping. Lower `tolerance_quantile` if you see a
+large ratio here.
+
+A **threshold** decides how many candidates pass. Setting it loosely only adds
+candidates, and your own quality control removes the ones that do not reproduce.
+A large ratio here is the method working as intended. Tightening these has been
+measured to discard real features, so leave them alone unless your own data says
+otherwise.
+
+### Reproducing the original exactly
+
+`legacy` controls whether the package applies its corrections to the original
 implementation or reproduces it exactly.
 
 | behaviour | `legacy = FALSE` (default) | `legacy = TRUE` |
@@ -298,6 +337,8 @@ implementation or reproduces it exactly.
 | peak width in scans | counts the scans spanned | counts one scan too many |
 | a peak counts as isolated when | both neighbours are distant | only the following peak is distant |
 | matching peaks across files | takes the closest candidate | takes the first candidate in the window |
+| mass and peak-width tolerances | a quantile of the distribution | the largest value measured |
+| very wide peaks | no special case | halves the upper bound, drops the lower bound to zero |
 | grouping bandwidth for xcms | taken from the measured drift | fixed at 5 |
 
 The default is `FALSE`: the corrections are applied unless you ask for the original.

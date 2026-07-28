@@ -223,6 +223,8 @@ four things, each reached through its own named parameter at the call site:
 | Clean-ZOI isolation rule | `flag_isolated_zoi(legacy_isolation=)` | forward-only | both-sides |
 | Cross-file matching | `match_zoi_across_files(legacy_first_match=)` | first match | nearest match |
 | xcms grouping `bw` | `to_xcms()` | hardcoded `5` | data-driven `max(rt_shift)` |
+| Tolerance estimates | `point_estimates(tolerance_quantile=)` | trim then `max()` | quantile of untrimmed |
+| Wide-peak branch | `point_estimates()` | `hi > 35 && ratio > 515` | no branch |
 
 `legacy = FALSE` gives the corrected/improved behaviour throughout. When touching any of
 these paths, keep the legacy branch intact — it is what the verbatim-port comparisons
@@ -250,6 +252,34 @@ Two asymmetries in that table worth knowing:
   `+4`/`+5`/`+7` conditional with its 5%-trimmed-mean height:width ratio, the
   `max(3, ·)` S/N floor, and unit conversions are all in `point_estimates()`, shared by
   the three translators.
+- **Tolerances and thresholds are not the same kind of parameter.** This is the rule
+  for when drawing an estimate from the end of a distribution is safe, and it came out
+  of a field report on Orbitrap lipidomics (438 injections) with controlled xcms runs.
+
+  A **tolerance** — `ppm`, `mz_diff`, `peakwidth` — governs how a peak is *built*.
+  Setting it from an extreme degrades the peaks themselves and downstream filtering
+  cannot undo it: `ppm 46` versus `ppm 10` found 1.97× the chromatographic peaks and
+  produced ~6% *fewer* features, with QC RSD identical and per-feature m/z spans nearly
+  doubled. These are drawn at `tolerance_quantile`.
+
+  A **threshold** — `noise`, `snthresh`, `min_peak_height`, `width_scans` — governs how
+  many candidates *pass*. A permissive one only adds candidates, and QC and blank
+  filtering remove what does not reproduce. Tightening them was measured to be actively
+  harmful: the count of features with QC RSD < 30% fell from 5,880 to 3,944. **Leave
+  these on the extremes.** The authors' manual says the same thing in their own words —
+  Paramounter "maximize[s] the number of true positive features", accepts "a higher rate
+  of false positive features", and tells users to raise thresholds by hand.
+
+  `check_estimates()` reports the estimate-to-median ratio per quantity with this label
+  attached, so a user can tell a problem from the design.
+
+  Note two quirks that are faithful to the original and deliberately kept: `noise` and
+  `width_scans` are trimmed on the tail that is never read, so their `min()` is a raw
+  global extreme; and the `ratio > 515` guard compares intensity-per-second against a
+  constant calibrated on Bruker Q-TOF counts, so it does not transfer between instrument
+  classes. The first is inert in practice (an 11-fold `noise` increase cost 8% of peaks
+  and 3% of features). The second is why the wide-peak branch is gone from the default
+  path rather than re-tuned.
 - **Resolved original inconsistencies**: the demo `XCMS.R` used `integrate = 2` and
   `snthresh = 1.065`, but part 2's computed output uses `integrate = 1` and floors S/N
   at 3. We follow part 2 — the tool's actual output — not the demo script.

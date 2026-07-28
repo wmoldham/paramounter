@@ -1,3 +1,61 @@
+# paramounter 0.2.0
+
+Acts on a field report from an untargeted Orbitrap lipidomics study (438
+injections), which found that the parameters measured on high-dynamic-range data were
+far more permissive than the instrument warranted. `legacy = TRUE` still reproduces the
+original method exactly.
+
+## The distinction behind these changes
+
+The report separated the parameters by what they control, and tested both halves against
+xcms with everything else held constant.
+
+* A **tolerance** — `ppm`, `mz_diff`, `peakwidth` — decides how a peak is built. Setting
+  it from the largest value measured cannot be undone downstream: a `ppm` of 46 rather
+  than 10 found 1.97× the chromatographic peaks and produced ~6% *fewer* features, with
+  QC RSD unchanged and per-feature m/z spans nearly doubled.
+* A **threshold** — `noise`, `snthresh`, `min_peak_height`, `width_scans` — decides how
+  many candidates pass, and downstream filtering removes what does not reproduce.
+  Tightening these was measured to be harmful: features with QC RSD below 30% fell from
+  5,880 to 3,944.
+
+**Only the tolerances changed.** The thresholds are left on their extremes, on the
+report's evidence rather than on principle.
+
+## Behaviour changes
+
+* **Tolerances are drawn at a quantile rather than a maximum.** The new
+  `pm_config(tolerance_quantile = )`, default `0.95`, sets `ppm`, `mz_diff` and the upper
+  peak-width bound. It is taken from the untrimmed distribution rather than applied on top
+  of `trim`, because the two compose: 0.97 then 0.95 gives 0.9215, not 0.95.
+
+* **The wide-peak branch no longer applies by default.** It halved the upper peak-width
+  bound and dropped the lower bound to *zero* when the widest peak exceeded 35 seconds and
+  a height-to-width ratio exceeded 515. Both parts caused trouble. A lower bound of zero
+  asks `CentWave` for peaks of no width, which it cannot distinguish from a spike. And 515
+  compares an intensity-per-second quantity against a constant calibrated on Bruker Q-TOF
+  counts, so on instruments with larger intensities it is always true. Once the upper bound
+  is a quantile it is already robust to a few unusually wide peaks, which is all the branch
+  was defending against.
+
+* On the shipped demo data the default now gives `ppm` 20 rather than 30 and `peakwidth`
+  `c(5, 41)` rather than `c(0, 28.5)`. Under `legacy = TRUE` both are unchanged, and 11 of
+  the 12 published values still reproduce exactly.
+
+## New
+
+* `check_estimates()` reports, for each measured quantity, the parameter that will be
+  used, the median of its distribution, and the ratio between them — labelled `tolerance`
+  or `threshold` so you can tell a problem from the intended design. Worth running before
+  committing to a long peak-picking run.
+
+## Fixes
+
+* `to_xcms(params, sample_groups = )` no longer requires one entry per *measured* file.
+  Measuring a few representative injections and processing a much larger experiment is the
+  intended workflow, and the check made the argument unusable for it. Nothing downstream
+  needed it: `PeakDensityParam` accepts a vector of any length.
+
 # paramounter 0.1.0
 
 First release. The package installs from GitHub only.

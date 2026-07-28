@@ -1,6 +1,6 @@
 Package: paramounter
 Title: Measure LC-MS Processing Parameters Directly from Your Data
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("William", "Oldham", , "wm.oldham@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3029-4866")),
