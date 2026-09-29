@@ -161,7 +161,9 @@ which removes single-point spikes and runs that have merged with a neighbour.
 
 `flag_isolated_zoi()` marks peaks that have no neighbouring peak within 300 seconds
 in the same mass bin. Only these are used in step 12, because a crowded peak cannot
-be matched reliably between files.
+be matched reliably between files. They can optionally be the only peaks the
+tolerances are measured on as well; see
+[When most zones are not peaks](#when-most-zones-are-not-peaks).
 
 ### Step 10. Discard unreliable peaks
 
@@ -173,11 +175,14 @@ rather than signal, and would otherwise inflate the mass tolerance.
 The threshold is taken from the pooled ppm values, at the 95th percentile of the
 lowest 97 percent. It can also be set directly with `ppm_cutoff`.
 
-### Step 11. Trim each set of measurements
+### Step 11. Trim the threshold measurements
 
-Each parameter is summarised by either its maximum or its minimum, so a single
-unusual peak could determine the result. `aggregate_files()` discards the most
-extreme 3 percent from whichever end of each distribution would otherwise be used.
+A threshold is summarised by its minimum, so a single unusual peak could determine
+it. `aggregate_files()` discards the most extreme 3 percent from that end of each
+threshold distribution (`noise`, `width_scans`, `sn`, `height`). The tolerance
+distributions (`ppm`, `mz_diff`, `width_seconds`) are left whole, because they are
+summarised at a quantile rather than at an extreme, and trimming first would compose
+with it. Under `legacy = TRUE` every distribution is trimmed, as in the original.
 
 ### Step 12. Measure instrument drift
 
@@ -206,18 +211,23 @@ of each.
 ## Converting to software parameters
 
 `to_xcms()`, `to_msdial()`, and `to_mzmine()` convert the measurements into settings.
-Each distribution collapses to a single value by taking either its maximum or its
-minimum, according to the role the parameter plays.
+Each distribution collapses to a single value taken from one end of it, according to
+the role the parameter plays.
 
-A tolerance is set from the maximum, so that it is wide enough to accommodate the
-worst-behaved genuine peak.
+A tolerance is set from the upper end, so that it is wide enough to accommodate the
+worst-behaved genuine peak. Those that govern how a peak is built are drawn from
+`tolerance_quantile` rather than from the maximum, because a single noise-limited
+measurement should not widen the tolerance for every peak in the file. Those that
+govern grouping are still drawn from the maximum.
 
-| measurement | xcms parameter |
-|---|---|
-| largest `ppm` | `ppm` |
-| largest `width_seconds` | upper bound of `peakwidth` |
-| largest `mass_shift` | `binSize` for grouping |
-| largest `rt_shift` | `bw` for grouping |
+| measurement | xcms parameter | taken from |
+|---|---|---|
+| `ppm` | `ppm` | `tolerance_quantile` |
+| `width_seconds` | upper bound of `peakwidth` | `tolerance_quantile` |
+| `mass_shift` | `binSize` for grouping | the largest value |
+| `rt_shift` | `bw` for grouping | the largest value |
+
+Under `legacy = TRUE` every tolerance is the maximum, as in the original method.
 
 A threshold is set from the minimum, so that it is low enough to retain the weakest
 genuine peak.
@@ -229,11 +239,42 @@ genuine peak.
 | smallest `sn` | `snthresh`, with a floor of 3 |
 | smallest `height` | minimum peak height for MS-DIAL and MZmine |
 
-Peak width is treated as a special case. The bounds are normally the smallest width
-rounded up plus 4, and the largest rounded up plus 5. When peaks are broad, meaning
-the largest exceeds 35 seconds and peaks are tall relative to their width, the range
-becomes 0 to the largest width rounded up plus 7, halved. This suits chromatography
-in which a fixed lower bound would reject real peaks.
+The peak-width bounds are the smallest width rounded up plus 4, and the
+`tolerance_quantile` of the widths rounded up plus 5. Under `legacy = TRUE` the upper
+bound is the largest width, and the original's special case for broad peaks applies:
+when the largest width exceeds 35 seconds and peaks are tall relative to their width,
+the range becomes 0 to the largest width rounded up plus 7, halved. It is not applied
+by default, because a lower bound of zero asks `CentWave` for peaks of no width and
+the height-to-width constant it tests was calibrated on Bruker Q-TOF counts.
+
+### Grouping parameters and retention time correction
+
+`bw` and `binSize` carry a caveat the others do not. They are derived from `rt_shift` and
+`mass_shift`, which are measured on the files as acquired, but they are consumed by
+`groupChromPeaks()`, which in the usual xcms order runs *after* `adjustRtime()`. Retention
+time correction exists to remove between-injection drift, so by the time grouping happens,
+much of the drift these parameters were sized against is already gone.
+
+The estimate is therefore conservative, and where alignment works well it can be
+conservative enough to matter: grouping tolerates the full uncorrected drift, so peaks the
+chromatography resolves may be collected into a single feature. In a plasma lipidomics run
+of 216 injections, `bw` was measured at 7.2 seconds while residual drift after peak group
+alignment was 4.8 seconds. At the measured value, 32% of features contained chromatographic
+peaks spread over more than 20 seconds of retention time, and inspection of the extracted
+ion chromatograms showed these to be co-eluting species merged together. Reducing `bw` to
+just below the residual drift brought that to 8%, while the detection rate in pooled
+quality control injections fell by under four percentage points.
+
+If you align before grouping, treat the residual drift as a ceiling for `bw` rather than as
+the answer, and sweep downwards from it. The negative mode of the same study had 9.6 seconds
+of residual drift, but grouping at 8 seconds still merged 15% of features; the merge rate
+only reached the positive mode's level at 6 seconds, and the quality control detection rate
+was flat the whole way down. Detection falling off is the signal that a real feature is now
+being split across injections, and it is a more direct guide than the drift figure alone.
+
+The same argument applies to `binSize` for mass drift, though its effect is usually smaller.
+What this package measures is the instrument as it ran; where a later processing step removes
+part of what was measured, the parameter depending on it is worth revisiting.
 
 ## Usage
 
@@ -288,6 +329,8 @@ pm_config(
   match_rt_tol = 30,
   trim = 0.97,               # kept from each threshold distribution
   tolerance_quantile = 0.95, # taken from each tolerance distribution
+  tolerance_isolated = FALSE,# measure tolerances on isolated zones only
+  tolerance_min_scans = 1,   # ...and only on zones at least this many scans wide
   legacy = FALSE
 )
 ```
@@ -327,6 +370,38 @@ A large ratio here is the method working as intended. Tightening these has been
 measured to discard real features, so leave them alone unless your own data says
 otherwise.
 
+### When most zones are not peaks
+
+Lowering `tolerance_quantile` helps when a tolerance is set by a tail of poorly
+measured peaks. It cannot help when the bulk of the distribution is poor, which
+happens when most measured zones are not chromatographic peaks at all.
+
+On a polarity-switching HILIC Orbitrap run, with 1.2 seconds between scans of one
+polarity, the median zone was 2 scans wide and only 230 of 27,654 zones were isolated.
+The 95th-percentile `ppm` was 45 in every intensity decile, so no quantile rescued it.
+The upper peak-width bound came out at 27 seconds, below the median width of a real
+peak on that column (about 25 seconds), so `CentWave` split broad peaks. A third of the
+integrations of known metabolites came out at a fraction of their true area.
+
+`tolerance_isolated` and `tolerance_min_scans` restrict the tolerance distributions to
+zones that are chromatographic peaks: no neighbour in the mass bin within
+`isolation_gap`, and at least that many scans wide. On the same file, isolated zones of
+5 or more scans gave a 95th-percentile `ppm` of 2.7 and peak widths from 5 to 104
+seconds. Both conditions are needed there: the isolated zones alone still had a
+95th-percentile `ppm` of 30, because an isolated 2-scan blip is still a blip.
+
+```r
+params <- paramounter(files, pm_config(tolerance_isolated = TRUE, tolerance_min_scans = 5))
+```
+
+The thresholds still use every zone, following the rule above. The options are off by
+default and are not a general improvement. On the Orbitrap lipidomics data behind 0.2.0
+the default already gives the validated `ppm`, and turning them on would tighten it
+from 8-10 to 5, a value never tested there. A zone-level `ppm` is also a narrower
+quantity than what `CentWave` bounds, which is the scan-to-scan scatter along a whole
+peak including its weak edges, so a very small value may need headroom before it is
+used.
+
 ### Reproducing the original exactly
 
 `legacy` controls whether the package applies its corrections to the original
@@ -338,6 +413,7 @@ implementation or reproduces it exactly.
 | a peak counts as isolated when | both neighbours are distant | only the following peak is distant |
 | matching peaks across files | takes the closest candidate | takes the first candidate in the window |
 | mass and peak-width tolerances | a quantile of the distribution | the largest value measured |
+| zones the tolerances are measured on | every zone, unless `tolerance_isolated` or `tolerance_min_scans` is set | every zone |
 | very wide peaks | no special case | halves the upper bound, drops the lower bound to zero |
 | grouping bandwidth for xcms | taken from the measured drift | fixed at 5 |
 
