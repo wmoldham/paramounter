@@ -124,6 +124,15 @@ test_that("tolerance zone settings restrict only the tolerance distributions", {
   }
   only_wide <- aggregate_files(pf, "f.mzML", pm_config(ppm_cutoff = 100, tolerance_min_scans = 5L))
   expect_equal(sort(only_wide@distributions$ppm), c(1, 2, 3))
+  # isolation alone keeps the isolated 2-scan blip (row 3)
+  only_iso <- aggregate_files(pf, "f.mzML", pm_config(ppm_cutoff = 100, tolerance_isolated = TRUE))
+  expect_equal(sort(only_iso@distributions$ppm), c(1, 2, 40))
+  # the restriction applies after the ppm cutoff, not instead of it
+  cut <- aggregate_files(
+    pf, "f.mzML",
+    pm_config(ppm_cutoff = 1.5, tolerance_isolated = TRUE, tolerance_min_scans = 5L)
+  )
+  expect_equal(cut@distributions$ppm, 1)
 })
 
 test_that("tolerance zone settings are ignored under legacy and fail loudly when empty", {

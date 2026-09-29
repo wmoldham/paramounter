@@ -88,3 +88,10 @@ test_that("tolerance zone settings default to every zone and are validated", {
   expect_error(pm_config(tolerance_min_scans = 0), "positive integer")
   expect_error(pm_config(tolerance_min_scans = 2.5), "integer")
 })
+
+test_that("printing shows the tolerance settings", {
+  out <- capture.output(print(pm_config(tolerance_isolated = TRUE, tolerance_min_scans = 5L)))
+  expect_true(any(grepl("tolerance_quantile +0.95", out)))
+  expect_true(any(grepl("tolerance_isolated +TRUE", out)))
+  expect_true(any(grepl("tolerance_min_scans +5", out)))
+})

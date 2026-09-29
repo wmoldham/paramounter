@@ -77,3 +77,35 @@ test_that("inputs are validated", {
   expect_error(paramounter(files, config = "x", reader = reader), "pm_config object")
   expect_error(paramounter(files, reader = 42), "must be a function")
 })
+
+test_that("tolerance zone settings thread through to the translated parameters", {
+  set.seed(505)
+  traces <- make_multi_traces(3, 16, 80)
+  files <- make_temp_files(3)
+  by_file <- stats::setNames(traces, files)
+  reader <- function(f) by_file[[f]]
+
+  all <- paramounter(files, pm_config(), reader = reader)
+  off <- paramounter(files, pm_config(tolerance_isolated = FALSE, tolerance_min_scans = 1L), reader = reader)
+  on <- paramounter(files, pm_config(tolerance_isolated = TRUE, tolerance_min_scans = 5L), reader = reader)
+
+  # explicit defaults are the defaults
+  for (q in names(all@distributions)) {
+    expect_equal(off@distributions[[q]], all@distributions[[q]])
+  }
+  # restricted tolerance distributions are a non-empty subset of the full ones;
+  # threshold and shift distributions are untouched
+  for (q in c("ppm", "mz_diff", "width_seconds")) {
+    expect_gt(length(on@distributions[[q]]), 0L)
+    expect_lt(length(on@distributions[[q]]), length(all@distributions[[q]]))
+    expect_true(all(on@distributions[[q]] %in% all@distributions[[q]]))
+  }
+  for (q in c("noise", "width_scans", "sn", "height", "mass_shift", "rt_shift")) {
+    expect_equal(on@distributions[[q]], all@distributions[[q]])
+  }
+  # and the translator reads the restricted distributions
+  est <- point_estimates(on@distributions, FALSE, on@config@tolerance_quantile)
+  v <- xcms_values(on)
+  expect_equal(v$ppm, est$max_ppm)
+  expect_equal(v$peakwidth, est$peakwidth)
+})
