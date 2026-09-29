@@ -77,3 +77,14 @@ test_that("printing shows the settings and the auto ppm cutoff", {
   expect_output(print(pm_config()), "auto")
   expect_output(print(pm_config(ppm_cutoff = 20)), "20")
 })
+
+test_that("tolerance zone settings default to every zone and are validated", {
+  d <- pm_config()
+  expect_false(d@tolerance_isolated)
+  expect_equal(d@tolerance_min_scans, 1L)
+  expect_true(pm_config(tolerance_isolated = TRUE)@tolerance_isolated)
+  expect_equal(pm_config(tolerance_min_scans = 5L)@tolerance_min_scans, 5L)
+  expect_error(pm_config(tolerance_isolated = NA), "TRUE or FALSE")
+  expect_error(pm_config(tolerance_min_scans = 0), "positive integer")
+  expect_error(pm_config(tolerance_min_scans = 2.5), "integer")
+})

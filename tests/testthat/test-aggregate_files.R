@@ -98,3 +98,48 @@ test_that("aggregate_files validates its inputs", {
   expect_error(aggregate_files(list(pf), c("a", "b")), "one per file")
   expect_error(aggregate_files(list(pf), "a", config = "x"), "pm_config object")
 })
+
+test_that("tolerance zone settings restrict only the tolerance distributions", {
+  zoi <- data.frame(
+    ppm = c(1, 2, 40, 60, 3), mz_diff = c(0.001, 0.002, 0.02, 0.03, 0.003),
+    width_seconds = c(10, 20, 1, 1.2, 30), width_scans = c(8, 15, 2, 2, 25),
+    sn = c(50, 80, 4, 5, 90), height = c(1e5, 2e5, 1e4, 2e4, 3e5),
+    reference_mz = 100 + 1:5, apex_rt = c(60, 400, 120, 700, 900),
+    isolated = c(TRUE, TRUE, TRUE, FALSE, FALSE)
+  )
+  pf <- list(list(noise = c(100, 200, 300), zoi = zoi))
+  all <- aggregate_files(pf, "f.mzML", pm_config(ppm_cutoff = 100))
+  sel <- aggregate_files(
+    pf, "f.mzML",
+    pm_config(ppm_cutoff = 100, tolerance_isolated = TRUE, tolerance_min_scans = 5L)
+  )
+  # rows 1 and 2 are isolated and wide enough; row 3 is isolated but a 2-scan
+  # blip, which is the case isolation alone does not catch
+  expect_equal(sort(sel@distributions$ppm), c(1, 2))
+  expect_equal(sort(sel@distributions$mz_diff), c(0.001, 0.002))
+  expect_equal(sort(sel@distributions$width_seconds), c(10, 20))
+  expect_equal(sort(all@distributions$ppm), sort(zoi$ppm))
+  for (q in c("noise", "width_scans", "sn", "height")) {
+    expect_equal(sel@distributions[[q]], all@distributions[[q]])
+  }
+  only_wide <- aggregate_files(pf, "f.mzML", pm_config(ppm_cutoff = 100, tolerance_min_scans = 5L))
+  expect_equal(sort(only_wide@distributions$ppm), c(1, 2, 3))
+})
+
+test_that("tolerance zone settings are ignored under legacy and fail loudly when empty", {
+  zoi <- data.frame(
+    ppm = c(1, 2), mz_diff = c(0.001, 0.002), width_seconds = c(1, 2),
+    width_scans = c(2, 2), sn = c(5, 6), height = c(1e4, 2e4),
+    reference_mz = c(101, 102), apex_rt = c(10, 20), isolated = c(FALSE, FALSE)
+  )
+  pf <- list(list(noise = c(100, 200), zoi = zoi))
+  expect_error(
+    aggregate_files(pf, "f.mzML", pm_config(ppm_cutoff = 100, tolerance_isolated = TRUE)),
+    "No zones left"
+  )
+  leg <- aggregate_files(
+    pf, "f.mzML",
+    pm_config(ppm_cutoff = 100, legacy = TRUE, tolerance_isolated = TRUE, tolerance_min_scans = 5L)
+  )
+  expect_length(leg@distributions$ppm, 2L)
+})

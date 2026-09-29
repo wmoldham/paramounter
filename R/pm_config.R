@@ -77,6 +77,32 @@ checked <- function(check, name) {
 #'   This is taken directly from the untrimmed distribution rather than stacked
 #'   on `trim`. The two would otherwise compose: trimming to `0.97` and then
 #'   taking `0.95` of what remains lands at `0.9215`, not `0.95`.
+#' @param tolerance_isolated Single `TRUE` or `FALSE`. When `TRUE`, the
+#'   *tolerance* distributions — `ppm`, `mz_diff` and `width_seconds` — are
+#'   measured only on isolated zones, those with no neighbour in the same mass bin
+#'   within `isolation_gap` (default `FALSE`, every zone). Ignored under
+#'   `legacy = TRUE`.
+#' @param tolerance_min_scans Single positive integer. The *tolerance*
+#'   distributions are measured only on zones at least this many scans wide
+#'   (default `1L`, every zone). Ignored under `legacy = TRUE`.
+#'
+#'   The two settings answer the same problem and are meant to be used together.
+#'   On some data most measured zones are not chromatographic peaks at all: on a
+#'   polarity-switching HILIC run the median zone was 2 scans (1.2 s) wide, and
+#'   only 230 of 27,654 were isolated. Those zones set the tolerances. `ppm` came
+#'   out at 45 at the 95th percentile in every intensity decile, so no quantile
+#'   rescues it, and the upper peak-width bound (27 s) fell below the median width
+#'   of a real peak (~25 s), which made `CentWave` split broad peaks. Restricted to
+#'   isolated zones at least 5 scans wide, the same file gave a 95th-percentile
+#'   `ppm` of 2.7 and peak widths of 5-104 s. Isolation alone was not enough - the
+#'   isolated set still had a 95th-percentile `ppm` of 30 - because an isolated
+#'   2-scan blip is still a blip.
+#'
+#'   Only tolerances are restricted. The *threshold* distributions (`noise`,
+#'   `sn`, `height`, `width_scans`) keep every zone, because a loose threshold is
+#'   recoverable downstream and a loose tolerance is not; see
+#'   `tolerance_quantile`. Use [check_estimates()] to see whether a tolerance is
+#'   being set by the bulk of its distribution or by its tail.
 #' @param legacy Single `TRUE` or `FALSE`. When `FALSE` (the default) the
 #'   pipeline applies its corrections to the original method. When `TRUE` it
 #'   reproduces the original end to end, setting the scan-count, isolation,
@@ -174,6 +200,16 @@ pm_config <- new_class(
       default = 0.95,
       validator = checked(check_unit_fraction, "tolerance_quantile")
     ),
+    tolerance_isolated = new_property(
+      class_any,
+      default = FALSE,
+      validator = checked(check_flag, "tolerance_isolated")
+    ),
+    tolerance_min_scans = new_property(
+      class_any,
+      default = 1L,
+      validator = checked(check_count, "tolerance_min_scans")
+    ),
     legacy = new_property(
       class_any,
       default = FALSE,
@@ -216,6 +252,9 @@ method(print, pm_config) <- function(x, ...) {
   cat(sprintf("    match_rt_tol       %s\n", fmt(x@match_rt_tol)))
   cat("  aggregation / reproduction\n")
   cat(sprintf("    trim               %s\n", fmt(x@trim)))
+  cat(sprintf("    tolerance_quantile %s\n", fmt(x@tolerance_quantile)))
+  cat(sprintf("    tolerance_isolated %s\n", fmt(x@tolerance_isolated)))
+  cat(sprintf("    tolerance_min_scans %s\n", fmt(x@tolerance_min_scans)))
   cat(sprintf("    legacy             %s\n", fmt(x@legacy)))
   invisible(x)
 }

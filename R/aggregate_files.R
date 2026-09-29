@@ -108,6 +108,29 @@ aggregate_files <- function(per_file, files, config = pm_config()) {
   kept <- zoi_pooled[zoi_pooled$ppm < cutoff, , drop = FALSE]
   trim <- config@trim
 
+  # The zones the tolerances are measured on. By default every zone that passed
+  # the cutoff; optionally only those that are chromatographic peaks - isolated,
+  # and wide enough to be more than a blip. See pm_config()'s
+  # `tolerance_isolated` and `tolerance_min_scans` for the data behind this.
+  tol <- kept
+  if (!config@legacy) {
+    use <- kept$width_scans >= config@tolerance_min_scans
+    if (config@tolerance_isolated) {
+      use <- use & kept$isolated
+    }
+    tol <- kept[use, , drop = FALSE]
+    if (nrow(tol) == 0L && nrow(kept) > 0L) {
+      stop(
+        "No zones left to measure tolerances on: none of the ", nrow(kept),
+        " zones is ", if (config@tolerance_isolated) "isolated and ",
+        "at least ", config@tolerance_min_scans, " scans wide. ",
+        "Relax `tolerance_isolated` or `tolerance_min_scans` in pm_config(), ",
+        "or lower `isolation_gap`.",
+        call. = FALSE
+      )
+    }
+  }
+
   # The tolerance distributions are kept whole under the corrected behaviour, so
   # that `tolerance_quantile` is taken from the measured values rather than from
   # an already-trimmed prefix of them. Trimming first would compose with the
@@ -115,17 +138,17 @@ aggregate_files <- function(per_file, files, config = pm_config()) {
   # `plot()` show the real tail, which is what makes check_estimates() useful.
   # Under legacy every distribution is trimmed, exactly as the original does.
   distributions <- empty_distributions()
-  distributions$ppm <- as.numeric(kept$ppm)
+  distributions$ppm <- as.numeric(tol$ppm)
   distributions$mz_diff <- if (config@legacy) {
     trim_distribution(kept$mz_diff, trim, "high")
   } else {
-    as.numeric(kept$mz_diff)
+    as.numeric(tol$mz_diff)
   }
   distributions$noise <- trim_distribution(noise_pooled, trim, "high")
   distributions$width_seconds <- if (config@legacy) {
     trim_distribution(kept$width_seconds, trim, "high")
   } else {
-    as.numeric(kept$width_seconds)
+    as.numeric(tol$width_seconds)
   }
   distributions$width_scans <- as.numeric(trim_distribution(kept$width_scans, trim, "high"))
   distributions$sn <- trim_distribution(kept$sn, trim, "low")

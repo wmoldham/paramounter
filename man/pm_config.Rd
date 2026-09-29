@@ -19,6 +19,8 @@ pm_config(
   match_rt_tol = 30,
   trim = 0.97,
   tolerance_quantile = 0.95,
+  tolerance_isolated = FALSE,
+  tolerance_min_scans = 1L,
   legacy = FALSE
 )
 }
@@ -79,6 +81,34 @@ estimate sitting far above the bulk of its distribution.
 This is taken directly from the untrimmed distribution rather than stacked
 on \code{trim}. The two would otherwise compose: trimming to \code{0.97} and then
 taking \code{0.95} of what remains lands at \code{0.9215}, not \code{0.95}.}
+
+\item{tolerance_isolated}{Single \code{TRUE} or \code{FALSE}. When \code{TRUE}, the
+\emph{tolerance} distributions — \code{ppm}, \code{mz_diff} and \code{width_seconds} — are
+measured only on isolated zones, those with no neighbour in the same mass bin
+within \code{isolation_gap} (default \code{FALSE}, every zone). Ignored under
+\code{legacy = TRUE}.}
+
+\item{tolerance_min_scans}{Single positive integer. The \emph{tolerance}
+distributions are measured only on zones at least this many scans wide
+(default \code{1L}, every zone). Ignored under \code{legacy = TRUE}.
+
+The two settings answer the same problem and are meant to be used together.
+On some data most measured zones are not chromatographic peaks at all: on a
+polarity-switching HILIC run the median zone was 2 scans (1.2 s) wide, and
+only 230 of 27,654 were isolated. Those zones set the tolerances. \code{ppm} came
+out at 45 at the 95th percentile in every intensity decile, so no quantile
+rescues it, and the upper peak-width bound (27 s) fell below the median width
+of a real peak (~25 s), which made \code{CentWave} split broad peaks. Restricted to
+isolated zones at least 5 scans wide, the same file gave a 95th-percentile
+\code{ppm} of 2.7 and peak widths of 5-104 s. Isolation alone was not enough - the
+isolated set still had a 95th-percentile \code{ppm} of 30 - because an isolated
+2-scan blip is still a blip.
+
+Only tolerances are restricted. The \emph{threshold} distributions (\code{noise},
+\code{sn}, \code{height}, \code{width_scans}) keep every zone, because a loose threshold is
+recoverable downstream and a loose tolerance is not; see
+\code{tolerance_quantile}. Use \code{\link[=check_estimates]{check_estimates()}} to see whether a tolerance is
+being set by the bulk of its distribution or by its tail.}
 
 \item{legacy}{Single \code{TRUE} or \code{FALSE}. When \code{FALSE} (the default) the
 pipeline applies its corrections to the original method. When \code{TRUE} it

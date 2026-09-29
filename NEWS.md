@@ -1,3 +1,26 @@
+# paramounter (development version)
+
+## New
+
+* `pm_config(tolerance_isolated = , tolerance_min_scans = )` restrict the zones the
+  *tolerance* distributions (`ppm`, `mz_diff`, `width_seconds`) are measured on to
+  isolated zones and to zones at least that many scans wide. Both default to every zone,
+  so existing results are unchanged, and both are ignored under `legacy = TRUE`.
+
+  They act on a field report from a polarity-switching HILIC Orbitrap run (1.2 s per
+  scan per polarity), where most zones were not chromatographic peaks: the median zone
+  was 2 scans wide and 230 of 27,654 were isolated. There the 95th-percentile `ppm` was
+  45 in every intensity decile, so `tolerance_quantile` could not rescue it, and the
+  upper peak-width bound (27 s) fell below the median real peak (~25 s), which made
+  `CentWave` split broad peaks. Restricted to isolated zones of 5 or more scans, `ppm`
+  was 2.7 at the 95th percentile and peak widths ran 5-104 s. Isolation alone was not
+  enough (95th-percentile `ppm` 30): an isolated 2-scan blip is still a blip.
+
+  Threshold distributions keep every zone, following the tolerance/threshold rule.
+  On the Orbitrap lipidomics data behind 0.2.0 the options are not needed - the default
+  already gives the validated `ppm` (8 and 10) - and they would tighten `ppm` to 5,
+  which was not tested there. Check [check_estimates()] before turning them on.
+
 # paramounter 0.2.0
 
 Acts on a field report from an untargeted Orbitrap lipidomics study (438
